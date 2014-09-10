@@ -631,6 +631,57 @@ namespace Utils.Tests
             Assert.True(testObject.IsDependencyRegistered(testName));
         }
 
+        [Fact]
+        public void can_resolve_dependency_from_plugin()
+        {
+            var mockLogger = new Mock<ILogger>();
+            var testObject = new Factory("test", mockLogger.Object);
+            var testDep = new object();
+            var requestedDepName = "Blah";
+            testObject.DepPlugin(depName => {
+                Assert.Equal(requestedDepName, depName);
+                return testDep;
+            });
+
+            Assert.Equal(testDep, testObject.ResolveDep(requestedDepName));
+        }
+
+        [Fact]
+        public void can_register_multiple_dependency_plugins()
+        {
+            var mockLogger = new Mock<ILogger>();
+            var testObject = new Factory("test", mockLogger.Object);
+            var testDep = new object();
+            var requestedDepName = "Blah";
+            testObject.DepPlugin(depName =>
+            {
+                Assert.Equal(requestedDepName, depName);
+                return null;
+            });
+            testObject.DepPlugin(depName =>
+            {
+                Assert.Equal(requestedDepName, depName);
+                return testDep;
+            });
+
+            Assert.Equal(testDep, testObject.ResolveDep(requestedDepName));
+        }
+
+        [Fact]
+        public void can_resolve_dependency_from_plugin_in_fallback_factory()
+        {
+            var mockLogger = new Mock<ILogger>();
+            var mockFallbackFactory = new Mock<IFactory>();
+            var testObject = new Factory("test", mockFallbackFactory.Object, mockLogger.Object);
+            var testDep = new object();
+            var requestedDepName = "Blah";
+            mockFallbackFactory
+                .Setup(m => m.ResolvePluginDep(requestedDepName))
+                .Returns(testDep);
+
+            Assert.Equal(testDep, testObject.ResolveDep(requestedDepName));
+        }
+
         public class can_resolve_constructor_dependency
         {
             public interface ITestDep

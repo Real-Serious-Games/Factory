@@ -96,6 +96,13 @@ namespace Utils
         IFactory Dep(string dependencyName, object dependency);
 
         /// <summary>
+        /// Register a plugin that can fulfil a dependency.
+        /// The plugin function should return null if the dependency can't be satisfied.
+        /// The plugin function is passed the name of the dependency.
+        /// </summary>
+        IFactory DepPlugin(Func<string, object> plugin);
+
+        /// <summary>
         /// Remove a typed dependency from the factory.
         /// </summary>
         IFactory RemoveDep<DepT>();
@@ -151,6 +158,12 @@ namespace Utils
         object ResolveDep(string dependencyName, Stack<Type> dependencyChain);
 
         /// <summary>
+        /// Resolve a dependency by quering plugins.
+        /// Returns null if dependency was not found.
+        /// </summary>
+        object ResolvePluginDep(string dependencyName);
+
+        /// <summary>
         /// Order specified types by their dependencies.
         /// </summary>
         IEnumerable<Type> OrderByDeps<AttributeT>(IEnumerable<Type> types, Func<AttributeT, string> typeNameSelector)
@@ -183,6 +196,11 @@ namespace Utils
         /// The dictionary that contains the dependencies.
         /// </summary>
         private Dictionary<string, object> dependencies = new Dictionary<string, object>();
+
+        /// <summary>
+        /// List of plugins that are can provide dependencies when they are otherwise not satisfied within the factory.
+        /// </summary>
+        private List<Func<string, object>> plugins = new List<Func<string, object>>();
 
         /// <summary>
         /// Name of the factory, useful for debugging.
@@ -591,6 +609,17 @@ namespace Utils
         }
 
         /// <summary>
+        /// Register a plugin that can fulfil a dependency.
+        /// The plugin function should return null if the dependency can't be satisfied.
+        /// The plugin function is passed the name of the dependency.
+        /// </summary>
+        public IFactory DepPlugin(Func<string, object> plugin)
+        {
+            plugins.Add(plugin);
+            return this;
+        }
+
+        /// <summary>
         /// Resolve the particular contructor to call.
         /// </summary>
         public ConstructorInfo ResolveConstructor(Type type, Type[] argTypes)
@@ -918,15 +947,23 @@ namespace Utils
                 Type dependencyType;
                 if (typeMap.TryGetValue(dependencyName, out dependencyType))
                 {
-                    return InstantiateDependency(dependencyName, dependencyChain, dependencyType);
+                    return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
                 }
-                else if (fallbackFactory != null)
+                
+                if (fallbackFactory != null)
                 {
                     dependencyType = fallbackFactory.FindType(dependencyName);
                     if (dependencyType != null)
                     {
-                        return InstantiateDependency(dependencyName, dependencyChain, dependencyType);
+                        return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
                     }                    
+                }
+
+                // Query plugins to provide the dependency.
+                var pluginDependency = ResolvePluginDep(dependencyName);
+                if (pluginDependency != null)
+                {
+                    return pluginDependency;
                 }
 
                 throw new ApplicationException("Failed to find or create dependency " + dependencyName);
@@ -938,11 +975,29 @@ namespace Utils
         }
 
         /// <summary>
-        /// Helper function to instantiate a dependency.
+        /// Resolve a dependency by quering plugins.
+        /// Returns null if dependency was not found.
         /// </summary>
-        private object InstantiateDependency(string dependencyName, Stack<Type> dependencyChain, Type dependencyType)
+        public object ResolvePluginDep(string dependencyName)
         {
-            return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
+            Argument.StringNotNullOrEmpty(() => dependencyName);
+
+            // Query plugins to provide the dependency.
+            var pluginDependency = plugins
+                .Select(plugin => plugin(dependencyName))
+                .Where(dep => dep != null)
+                .FirstOrDefault();
+            if (pluginDependency != null)
+            {
+                // Plugin dependency resolved at this level.
+                return pluginDependency;
+            }
+            else if (fallbackFactory != null)
+            {
+                return fallbackFactory.ResolvePluginDep(dependencyName);
+            }
+
+            return null;
         }
 
         /// <summary>
