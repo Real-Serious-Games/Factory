@@ -43,7 +43,7 @@ namespace Utils.Tests
                     .Returns(singleton);
             });
 
-            testObject.InitSingletons();
+            testObject.ScanSingletonTypes();
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace Utils.Tests
         {
             Init();
 
-            testObject.InitSingletons();
+            testObject.ScanSingletonTypes();
 
             Assert.Empty(testObject.Singletons);
         }
@@ -164,5 +164,6 @@ namespace Utils.Tests
 
             mockLogger.Verify(m => m.LogError(It.IsAny<string>(), It.IsAny<ApplicationException>()), Times.Once());
         }
+
     }
 }
