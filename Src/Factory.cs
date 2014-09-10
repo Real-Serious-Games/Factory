@@ -942,42 +942,7 @@ namespace Utils
         /// </summary>
         private object InstantiateDependency(string dependencyName, Stack<Type> dependencyChain, Type dependencyType)
         {
-            var singletonAttribute = ReflectionUtils.GetAttribute<LazySingletonAttribute>(dependencyType);
-            if (singletonAttribute != null)
-            {
-                if (dependencyName == dependencyType.Name)
-                {
-                    throw new ApplicationException("Something unexpected happend, dependency name " + dependencyName + " and concrete dependency type " + dependencyType.Name + " are the same!");
-                }
-
-                // Dependency is a singleton.
-                // Is the singleton already cached under the shared key?
-                object cachedDependency;
-                if (dependencies.TryGetValue(dependencyType.Name, out cachedDependency))
-                {
-                    // Yes, then cache it under the specified name.
-                    Dep(dependencyName, cachedDependency);
-
-                    return cachedDependency;
-                }
-            }
-
-            var createdDependency = Instantiate<object>(dependencyType, emptyArray, dependencyChain);
-
-            if (singletonAttribute != null)
-            {
-                if (dependencyName == dependencyType.Name)
-                {
-                    throw new ApplicationException("Something unexpected happend, dependency name " + dependencyName + " and concrete dependency type " + dependencyType.Name + " are the same!");
-                }
-
-                // Dependency is a singleton.
-                // Cache the singleton that was just instantiated.
-                Dep(dependencyName, createdDependency);         // Cache under interface name.                     
-                Dep(dependencyType.Name, createdDependency);    // Cache under concrete type name as well.
-            }
-
-            return createdDependency;
+            return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
         }
 
         /// <summary>
