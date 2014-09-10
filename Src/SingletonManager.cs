@@ -73,7 +73,7 @@ namespace Utils
             var singletons = new List<object>();
 
             var types = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) });
-            var orderedTypes = factory.OrderByDeps<SingletonAttribute>(types, a => a.InterfaceType != null ? a.InterfaceType.Name : null);
+            var orderedTypes = factory.OrderByDeps<SingletonAttribute>(types, a => a.DependencyName);
 
             logger.LogInfo("Found singletons: " + orderedTypes.Select(t => t.Name).Join(", "));
 
@@ -88,9 +88,9 @@ namespace Utils
                 foreach (var attribute in attributes)
                 {
                     // Add the singleton as a dependency.
-                    if (attribute.InterfaceType != null)
+                    if (attribute.DependencyName != null)
                     {
-                        dependencyCache.Add(attribute.InterfaceType.Name, singleton);
+                        dependencyCache.Add(attribute.DependencyName, singleton);
                     }
                 }
 

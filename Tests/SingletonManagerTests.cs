@@ -16,12 +16,34 @@ namespace Utils.Tests
         Mock<IReflection> mockReflection;
         SingletonManager testObject;
 
-        void Init()
+        void Init(params object[] singletons)
         {
             mockFactory = new Mock<IFactory>();
             mockReflection = new Mock<IReflection>();
             mockLogger = new Mock<ILogger>();
             testObject = new SingletonManager(mockFactory.Object, mockReflection.Object, mockLogger.Object);
+
+
+            var singletonTypes = singletons.Select(s => s.GetType()).ToArray();
+            mockReflection
+                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
+                .Returns(singletonTypes);
+            mockFactory
+                .Setup(m => m.OrderByDeps<SingletonAttribute>(singletonTypes, It.IsAny<Func<SingletonAttribute, string>>()))
+                .Returns(singletonTypes);
+
+            singletons.Each(singleton =>
+            {
+                var singletonType = singleton.GetType();
+                mockReflection
+                    .Setup(m => m.GetAttributes<SingletonAttribute>(singletonType))
+                    .Returns(new SingletonAttribute[] { new SingletonAttribute(singleton.GetType().Name) });
+                mockFactory
+                    .Setup(m => m.Create(singletonType))
+                    .Returns(singleton);
+            });
+
+            testObject.InitSingletons();
         }
 
         [Fact]
@@ -37,58 +59,20 @@ namespace Utils.Tests
         [Fact]
         public void can_find_singleton()
         {
-            Init();
+            var singleton = new object();
 
-            var mockType = typeof(int);
-            var mockTypes = new Type[] { mockType };
-            var mockSingleton = new object();
-
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute() });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockSingleton);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(singleton);
 
             Assert.Equal(1, testObject.Singletons.Length);
-            Assert.Equal(mockSingleton, testObject.Singletons[0]);
+            Assert.Equal(singleton, testObject.Singletons[0]);
         }
 
         [Fact]
         public void non_startable_singletons_are_ignored_on_start()
         {
-            Init();
+            var nonStartableSingleton = new object();
 
-            var mockType = typeof(int);
-            var mockTypes = new Type[] { mockType };
-            var mockNonStartableSingleton = new object();
-
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockNonStartableSingleton);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(nonStartableSingleton);
 
             testObject.Start();
         }
@@ -96,28 +80,9 @@ namespace Utils.Tests
         [Fact]
         public void non_startable_singletons_are_ignored_on_shutdown()
         {
-            Init();
+            var nonStartableSingleton = new object();
 
-            var mockType = typeof(int);
-            var mockTypes = new Type[] { mockType };
-            var mockNonStartableSingleton = new object();
-
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockNonStartableSingleton);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(nonStartableSingleton);
 
             testObject.Shutdown();
         }
@@ -127,68 +92,25 @@ namespace Utils.Tests
         {
             Init();
 
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(new Type[0]);
-
-            testObject.InitSingletons();
-
             Assert.Null(testObject.ResolveDependency("some singleton that doesnt exist"));
         }
 
         [Fact]
         public void can_resolve_singleton_as_dependency()
         {
-            Init();
-
-            var mockType = typeof(float);
-            var mockTypes = new Type[] { mockType };
             var singleton = new object();
 
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
+            Init(singleton);
 
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(singleton);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
-
-            Assert.Equal(singleton, testObject.ResolveDependency(mockType.Name));
+            Assert.Equal(singleton, testObject.ResolveDependency(singleton.GetType().Name));
         }
 
         [Fact]
         public void can_start_singletons()
         {
-            Init();
-
-            var mockType = typeof(float);
-            var mockTypes = new Type[] { mockType };
             var mockStartableSingleton = new Mock<IStartable>();
 
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockStartableSingleton.Object);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(mockStartableSingleton.Object);
 
             testObject.Start();
 
@@ -198,28 +120,9 @@ namespace Utils.Tests
         [Fact]
         public void can_shutdown_singletons()
         {
-            Init();
-
-            var mockType = typeof(float);
-            var mockTypes = new Type[] { mockType };
             var mockStartableSingleton = new Mock<IStartable>();
 
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockStartableSingleton.Object);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(mockStartableSingleton.Object);
 
             testObject.Shutdown();
 
@@ -229,28 +132,9 @@ namespace Utils.Tests
         [Fact]
         public void start_exceptions_are_swallowed_and_logged()
         {
-            Init();
-
-            var mockType = typeof(float);
-            var mockTypes = new Type[] { mockType };
             var mockStartableSingleton = new Mock<IStartable>();
 
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockStartableSingleton.Object);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(mockStartableSingleton.Object);
 
             mockStartableSingleton
                 .Setup(m => m.Start())
@@ -266,28 +150,9 @@ namespace Utils.Tests
         [Fact]
         public void shutdown_exceptions_are_swallowed_and_logged()
         {
-            Init();
-
-            var mockType = typeof(float);
-            var mockTypes = new Type[] { mockType };
             var mockStartableSingleton = new Mock<IStartable>();
 
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(mockTypes);
-
-            mockReflection
-                .Setup(m => m.GetAttributes<SingletonAttribute>(mockType))
-                .Returns(new SingletonAttribute[] { new SingletonAttribute(mockType) });
-
-            mockFactory
-                .Setup(m => m.Create(mockType))
-                .Returns(mockStartableSingleton.Object);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(mockTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(mockTypes);
-
-            testObject.InitSingletons();
+            Init(mockStartableSingleton.Object);
 
             mockStartableSingleton
                 .Setup(m => m.Shutdown())

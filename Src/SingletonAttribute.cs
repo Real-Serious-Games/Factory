@@ -12,24 +12,24 @@ namespace Utils
     public class SingletonAttribute : Attribute
     {
         /// <summary>
-        /// Interface for dependency injection of the singleton.
+        /// Name for dependency injection of the singleton.
         /// </summary>
-        public Type InterfaceType { get; private set; }
+        public string DependencyName { get; private set; }
 
         public SingletonAttribute()
         {
         }
 
-        public SingletonAttribute(Type interfaceType)
+        public SingletonAttribute(string dependencyName)
         {
-            this.InterfaceType = interfaceType;
+            this.DependencyName = dependencyName;
         }
 
         public override string ToString()
         {
-            if (InterfaceType != null)
+            if (DependencyName != null)
             {
-                return "Singleton implementing: " + InterfaceType.Name;
+                return "Singleton available as dependency: " + DependencyName;
             }
             else
             {
