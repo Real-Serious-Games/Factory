@@ -28,6 +28,12 @@ namespace Utils
         private IReflection reflection;
 
         /// <summary>
+        /// Map that allows singletons to be dependency injected.
+        /// Maps 'dependency name' to singleton object.
+        /// </summary>
+        private Dictionary<string, object> dependencyCache = new Dictionary<string, object>();
+
+        /// <summary>
         /// For logging.
         /// </summary>
         private ILogger logger;
@@ -45,9 +51,24 @@ namespace Utils
         }
 
         /// <summary>
-        /// Initialize singletons.
+        /// Find a dependency to a singleton by name.
+        /// Returns null if the singleton doesn't exist.
         /// </summary>
-        public void InstantiateSingletons()
+        public object ResolveDependency(string name)
+        {
+            object singleton;
+            if (!dependencyCache.TryGetValue(name, out singleton))
+            {
+                return null;
+            }
+
+            return singleton;
+        }
+
+        /// <summary>
+        /// Find and instantiate singletons.
+        /// </summary>
+        public void InitSingletons()
         {
             var singletons = new List<object>();
 
@@ -69,7 +90,7 @@ namespace Utils
                     // Add the singleton as a dependency.
                     if (attribute.InterfaceType != null)
                     {
-                        factory.Dep(attribute.InterfaceType, singleton);
+                        dependencyCache.Add(attribute.InterfaceType.Name, singleton);
                     }
                 }
 
