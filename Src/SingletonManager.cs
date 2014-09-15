@@ -26,6 +26,11 @@ namespace Utils
         /// Set to true to make the singleton lazy. It will only be instantiated when resolved the first time.
         /// </summary>
         public bool lazy;
+
+        public override string ToString()
+        {
+            return singletonType.Name + " (" + (lazy ? "lazy" : "normal") + ") [" + dependencyNames.Join(",") + "]";
+        }
     }
 
     /// <summary>
@@ -38,6 +43,12 @@ namespace Utils
         /// The singleton will be instantiated when InstantiateSingletons is called.
         /// </summary>
         void RegisterSingleton(SingletonDef singletonDef);
+
+        /// <summary>
+        /// Find a dependency to a singleton by name.
+        /// Returns null if the singleton doesn't exist.
+        /// </summary>
+        object ResolveDependency(string dependencyName, IFactory factory);
     }
 
     /// <summary>
@@ -49,11 +60,6 @@ namespace Utils
         /// Singletons that are loaded.
         /// </summary>
         public object[] Singletons { get; private set; }
-
-        /// <summary>
-        /// For creating objects.
-        /// </summary>
-        private IFactory factory;
 
         /// <summary>
         /// For mockable C# reflection services.
@@ -76,13 +82,11 @@ namespace Utils
         /// </summary>
         private List<SingletonDef> singletonDefs = new List<SingletonDef>();
 
-        public SingletonManager(IFactory factory, IReflection reflection, ILogger logger)
+        public SingletonManager(IReflection reflection, ILogger logger)
         {
-            Argument.NotNull(() => factory);
             Argument.NotNull(() => reflection);
             Argument.NotNull(() => logger);
 
-            this.factory = factory;
             this.reflection = reflection;
             this.logger = logger;
             this.Singletons = new object[0];
@@ -104,9 +108,10 @@ namespace Utils
         /// Find a dependency to a singleton by name.
         /// Returns null if the singleton doesn't exist.
         /// </summary>
-        public object ResolveDependency(string dependencyName)
+        public object ResolveDependency(string dependencyName, IFactory factory)
         {
             Argument.StringNotNullOrEmpty(() => dependencyName);
+            Argument.NotNull(() => factory);
 
             object singleton;
             if (!dependencyCache.TryGetValue(dependencyName, out singleton))
@@ -118,7 +123,7 @@ namespace Utils
                     .FirstOrDefault();
                 if (lazySingletonDef != null)
                 {
-                    return InstantiateSingleton(lazySingletonDef);
+                    return InstantiateSingleton(lazySingletonDef, factory);
                 }
                 return null;
             }
@@ -129,18 +134,20 @@ namespace Utils
         /// <summary>
         /// Instantiate all known (non-lazy) singletons.
         /// </summary>
-        public void InstantiateSingletons()
+        public void InstantiateSingletons(IFactory factory)
         {
+            Argument.NotNull(() => factory);
+
             Singletons = singletonDefs
                 .Where(singletonDef => !singletonDef.lazy)
-                .Select(InstantiateSingleton)
+                .Select(singletonDef => InstantiateSingleton(singletonDef, factory))
                 .ToArray();
         }
 
         /// <summary>
         /// Instantiate a singleton from a definition.
         /// </summary>
-        private object InstantiateSingleton(SingletonDef singletonDef)
+        private object InstantiateSingleton(SingletonDef singletonDef, IFactory factory)
         {
             var type = singletonDef.singletonType;
             logger.LogInfo("Creating singleton: " + type.Name);

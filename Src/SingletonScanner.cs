@@ -45,9 +45,7 @@ namespace Utils
         {
             var singletonTypes = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) });
 
-            logger.LogInfo("Found singletons: " + singletonTypes.Select(t => t.Name).Join(", "));
-
-            singletonTypes
+            var singletonDefs = singletonTypes
                 .Select(type =>
                 {
                     var attrs = reflection.GetAttributes<SingletonAttribute>(type).ToArray();
@@ -62,6 +60,11 @@ namespace Utils
                         lazy = attrs.Any(atribute => atribute.Lazy)
                     };
                 })
+                .ToArray();
+
+            logger.LogInfo("Found singletons: \n" + singletonDefs.Select(def => def.ToString()).Join("\n"));
+
+            singletonDefs
                 .Each(singletonDef => singletonManager.RegisterSingleton(singletonDef));            
         }
     }

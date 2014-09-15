@@ -21,7 +21,7 @@ namespace Utils.Tests
             mockFactory = new Mock<IFactory>();
             mockReflection = new Mock<IReflection>();
             mockLogger = new Mock<ILogger>();
-            testObject = new SingletonManager(mockFactory.Object, mockReflection.Object, mockLogger.Object);
+            testObject = new SingletonManager(mockReflection.Object, mockLogger.Object);
         }
 
         private void InitTestSingleton(Type singletonType, object singleton, params string[] dependencyNames)
@@ -42,7 +42,7 @@ namespace Utils.Tests
         {
             Init();
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             Assert.Empty(testObject.Singletons);
         }
@@ -56,7 +56,7 @@ namespace Utils.Tests
             var singleton = new object();
             InitTestSingleton(singletonType, singleton);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             Assert.Equal(1, testObject.Singletons.Length);
             Assert.Equal(singleton, testObject.Singletons[0]);
@@ -77,14 +77,14 @@ namespace Utils.Tests
                 lazy = true
             });
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             var singleton = new object();
             mockFactory
                 .Setup(m => m.Create(singletonType))
                 .Returns(singleton);
 
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
         }
 
         [Fact]
@@ -102,15 +102,15 @@ namespace Utils.Tests
                 lazy = true
             });
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             var singleton = new object();
             mockFactory
                 .Setup(m => m.Create(singletonType))
                 .Returns(singleton);
 
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
 
             mockFactory.Verify(m => m.Create(singletonType), Times.Once());
         }
@@ -124,7 +124,7 @@ namespace Utils.Tests
             var nonStartableSingleton = new object();
             InitTestSingleton(singletonType, nonStartableSingleton);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             testObject.Start();
         }
@@ -138,7 +138,7 @@ namespace Utils.Tests
             var nonStartableSingleton = new object();
             InitTestSingleton(singletonType, nonStartableSingleton);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             testObject.Shutdown();
         }
@@ -148,7 +148,7 @@ namespace Utils.Tests
         {
             Init();
 
-            Assert.Null(testObject.ResolveDependency("some singleton that doesnt exist"));
+            Assert.Null(testObject.ResolveDependency("some singleton that doesnt exist", mockFactory.Object));
         }
 
         [Fact]
@@ -161,9 +161,9 @@ namespace Utils.Tests
             var dependencyName = "dep1";
             InitTestSingleton(singletonType, singleton, dependencyName);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
         }
 
         [Fact]
@@ -175,7 +175,7 @@ namespace Utils.Tests
             var mockStartableSingleton = new Mock<IStartable>();
             InitTestSingleton(singletonType, mockStartableSingleton.Object);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             testObject.Start();
 
@@ -191,7 +191,7 @@ namespace Utils.Tests
             var mockStartableSingleton = new Mock<IStartable>();
             InitTestSingleton(singletonType, mockStartableSingleton.Object);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             testObject.Shutdown();
 
@@ -206,7 +206,7 @@ namespace Utils.Tests
             var singletonType = typeof(object); // Anything will do here.
             var mockStartableSingleton = new Mock<IStartable>();
             InitTestSingleton(singletonType, mockStartableSingleton.Object);
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             mockStartableSingleton
                 .Setup(m => m.Start())
@@ -228,7 +228,7 @@ namespace Utils.Tests
             var mockStartableSingleton = new Mock<IStartable>();
             InitTestSingleton(singletonType, mockStartableSingleton.Object);
 
-            testObject.InstantiateSingletons();
+            testObject.InstantiateSingletons(mockFactory.Object);
 
             mockStartableSingleton
                 .Setup(m => m.Shutdown())
