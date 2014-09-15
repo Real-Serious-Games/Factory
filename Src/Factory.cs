@@ -252,16 +252,16 @@ namespace Utils
         /// <summary>
         /// Create an instance of the class that implements the specifid type.
         /// </summary>
-        public T CreateView<T>(Type type, params object[] args)
+        public T CreateView<T>(Type dataType, params object[] args)
         {
             var viewTypeName = typeof(T).Name;
 
-            logger.LogVerbose("[Factory: " + Name + "]: Resolving view " + viewTypeName + " for data " + type.Name);
+            logger.LogVerbose("[Factory: " + Name + "]: Resolving view " + viewTypeName + " for data " + dataType.Name);
             logger.Indent();
 
             try
             {
-                foreach (var typeToCheck in FlattenInterfaces(type))
+                foreach (var typeToCheck in FlattenInterfaces(dataType))
                 {
                     var viewName = viewTypeName + "_" + typeToCheck.Name;
                     if (HasType(viewName))
@@ -270,7 +270,7 @@ namespace Utils
                     }
                 }
 
-                throw new ApplicationException("Failed to create type with interface " + viewTypeName + " based on data type " + type.Name);
+                throw new ApplicationException("Failed to create type with interface " + viewTypeName + " based on data type " + dataType.Name);
             }
             finally
             {
@@ -553,7 +553,7 @@ namespace Utils
         {
             Argument.NotNull(() => dependency);
 
-            return Dep(typeof(DepT).Name, dependency);
+            return Dep(GetTypeName(typeof(DepT)), dependency);
         }
 
         /// <summary>
@@ -564,7 +564,7 @@ namespace Utils
             Argument.NotNull(() => dependencyType);
             Argument.NotNull(() => dependency);
 
-            return Dep(dependencyType.Name, dependency);
+            return Dep(GetTypeName(dependencyType), dependency);
         }
 
         /// <summary>
@@ -594,7 +594,7 @@ namespace Utils
         {
             Argument.NotNull(() => dependencyType);
 
-            return RemoveDep(dependencyType.Name);
+            return RemoveDep(GetTypeName(dependencyType));
         }
 
         /// <summary>
@@ -732,9 +732,9 @@ namespace Utils
                     return false; // Only consider interfaces for dep injection.
                 }
 
-                if (!IsDependencyRegistered(type.Name))
+                if (!IsDependencyRegistered(GetTypeName(type)))
                 {
-                    if (!HasType(type.Name))
+                    if (!HasType(GetTypeName(type)))
                     {
                         return false; // Can't satisfy dependency from the dependency provider or the factory.
                     }                    
@@ -752,18 +752,20 @@ namespace Utils
             return
                 parameters
                     .Where(parameter =>
-                        IsDependencyRegistered(parameter.ParameterType.Name) ||
-                        HasType(parameter.ParameterType.Name)
-                    )
+                    {
+                        var name = GetTypeName(parameter.ParameterType);
+                        return IsDependencyRegistered(name) || HasType(name);
+                    })
                     .Select(parameter =>
                     {
-                        if (IsDependencyRegistered(parameter.ParameterType.Name))
+                        var name = GetTypeName(parameter.ParameterType);
+                        if (IsDependencyRegistered(name))
                         {
-                            return parameter.Name + " (dependency: " + RetreiveDependency(parameter.ParameterType.Name).GetType().Name + ")";
+                            return parameter.Name + " (dependency: " + RetreiveDependency(name).GetType().Name + ")";
                         }
                         else
                         {
-                            return parameter.Name + " (factory creatable: " + FindType(parameter.ParameterType.Name).Name + ")";
+                            return parameter.Name + " (factory creatable: " + FindType(name).Name + ")";
                         }
                     })
                     .ToArray();
@@ -904,7 +906,7 @@ namespace Utils
                 return;
             }
 
-            var dependency = ResolveDep(dependencyType.Name, dependencyChain);
+            var dependency = ResolveDep(GetTypeName(dependencyType), dependencyChain);
             property.SetValue(instance, dependency, null);
         }
 
@@ -913,7 +915,7 @@ namespace Utils
         /// </summary>
         public T ResolveDep<T>()
         {
-            return (T)ResolveDep(typeof(T).Name);
+            return (T)ResolveDep(GetTypeName(typeof(T)));
         }
 
         /// <summary>
@@ -1093,13 +1095,13 @@ namespace Utils
             return type    // Start with types of properties.
                 .GetProperties()
                 .Where(p => ReflectionUtils.PropertyHasAttribute<DependencyAttribute>(p))
-                .Select(p => p.PropertyType.Name)
+                .Select(p => GetTypeName(p.PropertyType))
                 // Merge in constructor parameter types.
                 .Concat(
                     type
                         .GetConstructors()
                         .SelectMany(c => c.GetParameters())
-                        .Select(p => p.ParameterType.Name)
+                        .Select(p => GetTypeName(p.ParameterType))
                 )
                 .Distinct()
                 .SelectMany(n => FindDeps(n));

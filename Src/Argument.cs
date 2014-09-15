@@ -9,7 +9,27 @@ namespace Utils.Dbg
 {
     public class Argument
     {
+        [Conditional("DEBUG")]
+        public static void Invariant<T>(Expression<Func<T>> parameter, Func<bool> condition)
+        {
+            var memberExpression = parameter.Body as MemberExpression;
+            if (memberExpression == null)
+            {
+                throw new ApplicationException("Can only use a member expression with Argument.NotNull.");
+            }
+
+            if (!condition())
+            {
+                var parameterName = memberExpression.Member.Name;
+                var stackTrace = new StackTrace(true);
+                var stackFrames = stackTrace.GetFrames();
+                throw new ArgumentException(parameterName, memberExpression.Type.Name + " parameter failed invariant condition, Function: " + stackFrames[1].GetMethod().Name);
+            }
+        }
+
+
         // Todo: google debug break C#, only if running in debugger
+        [Conditional("DEBUG")] 
         public static void NotNull<T>(Expression<Func<T>> parameter)
         {
             var memberExpression = parameter.Body as MemberExpression;
@@ -24,10 +44,16 @@ namespace Utils.Dbg
                 var parameterName = memberExpression.Member.Name;
                 var stackTrace = new StackTrace(true);
                 var stackFrames = stackTrace.GetFrames();
-                throw new ArgumentNullException(parameterName, "Parameter type: " + memberExpression.Type.Name + ", Function: " + stackFrames[1].GetMethod().Name);
+                var msg = "Parameter type: " + memberExpression.Type.Name + ", Function: " + stackFrames[1].GetMethod().Name;
+                //if (Debugger.IsAttached)
+                //{
+                //    Debugger.Break();
+                //}
+                throw new ArgumentNullException(parameterName, msg);
             }
         }
 
+        [Conditional("DEBUG")] 
         public static void StringNotNullOrEmpty(Expression<Func<Object>> parameter)
         {
             var memberExpression = parameter.Body as MemberExpression;
@@ -59,6 +85,7 @@ namespace Utils.Dbg
             }
         }
 
+        [Conditional("DEBUG")] 
         public static void ArrayIndex(Expression<Func<int>> parameter)
         {
             var memberExpression = parameter.Body as MemberExpression;
@@ -82,6 +109,7 @@ namespace Utils.Dbg
             }
         }
 
+        [Conditional("DEBUG")] 
         public static void ArrayIndex(Expression<Func<int>> parameter, int maxArrayElements)
         {
             var memberExpression = parameter.Body as MemberExpression;

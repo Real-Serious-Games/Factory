@@ -5,7 +5,7 @@ using System.Text;
 using Utils;
 using Utils.Dbg;
 
-namespace Factory
+namespace Utils
 {
     /// <summary>
     /// Helper class to scan dlls and find singleton types.
