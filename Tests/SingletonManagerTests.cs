@@ -16,34 +16,25 @@ namespace Utils.Tests
         Mock<IReflection> mockReflection;
         SingletonManager testObject;
 
-        void Init(params object[] singletons)
+        void Init()
         {
             mockFactory = new Mock<IFactory>();
             mockReflection = new Mock<IReflection>();
             mockLogger = new Mock<ILogger>();
             testObject = new SingletonManager(mockFactory.Object, mockReflection.Object, mockLogger.Object);
+        }
 
-
-            var singletonTypes = singletons.Select(s => s.GetType()).ToArray();
-            mockReflection
-                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
-                .Returns(singletonTypes);
-            mockFactory
-                .Setup(m => m.OrderByDeps<SingletonAttribute>(singletonTypes, It.IsAny<Func<SingletonAttribute, string>>()))
-                .Returns(singletonTypes);
-
-            singletons.Each(singleton =>
+        private void InitTestSingleton(Type singletonType, object singleton, params string[] dependencyNames)
+        {
+            testObject.RegisterSingleton(new SingletonDef()
             {
-                var singletonType = singleton.GetType();
-                mockReflection
-                    .Setup(m => m.GetAttributes<SingletonAttribute>(singletonType))
-                    .Returns(new SingletonAttribute[] { new SingletonAttribute(singleton.GetType().Name) });
-                mockFactory
-                    .Setup(m => m.Create(singletonType))
-                    .Returns(singleton);
+                singletonType = singletonType,
+                dependencyNames = dependencyNames
             });
 
-            testObject.ScanSingletonTypes();
+            mockFactory
+                .Setup(m => m.Create(singletonType))
+                .Returns(singleton);
         }
 
         [Fact]
@@ -51,17 +42,21 @@ namespace Utils.Tests
         {
             Init();
 
-            testObject.ScanSingletonTypes();
+            testObject.InstantiateSingletons();
 
             Assert.Empty(testObject.Singletons);
         }
 
         [Fact]
-        public void can_find_singleton()
+        public void can_find_instantiate_registered_singleton()
         {
-            var singleton = new object();
+            Init();
 
-            Init(singleton);
+            var singletonType = typeof(object); // Anythin will do here.
+            var singleton = new object();
+            InitTestSingleton(singletonType, singleton);
+
+            testObject.InstantiateSingletons();
 
             Assert.Equal(1, testObject.Singletons.Length);
             Assert.Equal(singleton, testObject.Singletons[0]);
@@ -70,9 +65,13 @@ namespace Utils.Tests
         [Fact]
         public void non_startable_singletons_are_ignored_on_start()
         {
-            var nonStartableSingleton = new object();
+            Init();
 
-            Init(nonStartableSingleton);
+            var singletonType = typeof(object); // Anything will do here.
+            var nonStartableSingleton = new object();
+            InitTestSingleton(singletonType, nonStartableSingleton);
+
+            testObject.InstantiateSingletons();
 
             testObject.Start();
         }
@@ -80,9 +79,13 @@ namespace Utils.Tests
         [Fact]
         public void non_startable_singletons_are_ignored_on_shutdown()
         {
-            var nonStartableSingleton = new object();
+            Init();
 
-            Init(nonStartableSingleton);
+            var singletonType = typeof(object); // Anything will do here.
+            var nonStartableSingleton = new object();
+            InitTestSingleton(singletonType, nonStartableSingleton);
+
+            testObject.InstantiateSingletons();
 
             testObject.Shutdown();
         }
@@ -98,19 +101,28 @@ namespace Utils.Tests
         [Fact]
         public void can_resolve_singleton_as_dependency()
         {
+            Init();
+
+            var singletonType = typeof(object); // Anything will do here.
             var singleton = new object();
+            var dependencyName = "dep1";
+            InitTestSingleton(singletonType, singleton, dependencyName);
 
-            Init(singleton);
+            testObject.InstantiateSingletons();
 
-            Assert.Equal(singleton, testObject.ResolveDependency(singleton.GetType().Name));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
         }
 
         [Fact]
         public void can_start_singletons()
         {
-            var mockStartableSingleton = new Mock<IStartable>();
+            Init();
 
-            Init(mockStartableSingleton.Object);
+            var singletonType = typeof(object); // Anything will do here.
+            var mockStartableSingleton = new Mock<IStartable>();
+            InitTestSingleton(singletonType, mockStartableSingleton.Object);
+
+            testObject.InstantiateSingletons();
 
             testObject.Start();
 
@@ -120,9 +132,13 @@ namespace Utils.Tests
         [Fact]
         public void can_shutdown_singletons()
         {
-            var mockStartableSingleton = new Mock<IStartable>();
+            Init();
 
-            Init(mockStartableSingleton.Object);
+            var singletonType = typeof(object); // Anything will do here.
+            var mockStartableSingleton = new Mock<IStartable>();
+            InitTestSingleton(singletonType, mockStartableSingleton.Object);
+
+            testObject.InstantiateSingletons();
 
             testObject.Shutdown();
 
@@ -132,9 +148,12 @@ namespace Utils.Tests
         [Fact]
         public void start_exceptions_are_swallowed_and_logged()
         {
-            var mockStartableSingleton = new Mock<IStartable>();
+            Init();
 
-            Init(mockStartableSingleton.Object);
+            var singletonType = typeof(object); // Anything will do here.
+            var mockStartableSingleton = new Mock<IStartable>();
+            InitTestSingleton(singletonType, mockStartableSingleton.Object);
+            testObject.InstantiateSingletons();
 
             mockStartableSingleton
                 .Setup(m => m.Start())
@@ -150,9 +169,13 @@ namespace Utils.Tests
         [Fact]
         public void shutdown_exceptions_are_swallowed_and_logged()
         {
-            var mockStartableSingleton = new Mock<IStartable>();
+            Init();
 
-            Init(mockStartableSingleton.Object);
+            var singletonType = typeof(object); // Anything will do here.
+            var mockStartableSingleton = new Mock<IStartable>();
+            InitTestSingleton(singletonType, mockStartableSingleton.Object);
+
+            testObject.InstantiateSingletons();
 
             mockStartableSingleton
                 .Setup(m => m.Shutdown())

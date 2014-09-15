@@ -52,6 +52,7 @@
     <Compile Include="ReflectionUtils.cs" />
     <Compile Include="SingletonAttribute.cs" />
     <Compile Include="SingletonManager.cs" />
+    <Compile Include="SingletonScanner.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

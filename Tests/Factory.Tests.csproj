@@ -49,6 +49,7 @@
     <Compile Include="FactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SingletonManagerTests.cs" />
+    <Compile Include="SingletonScannerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Src\Factory.csproj">

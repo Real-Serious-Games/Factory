@@ -8,9 +8,37 @@ using Utils.Dbg;
 namespace Utils
 {
     /// <summary>
+    /// Defines a singleton.
+    /// </summary>
+    public struct SingletonDef
+    {
+        /// <summary>
+        /// The type of the singleton.
+        /// </summary>
+        public Type singletonType;
+
+        /// <summary>
+        /// Names of dependencies that the singleton satisfies.
+        /// </summary>
+        public string[] dependencyNames;
+    }
+
+    /// <summary>
+    /// Interface to the singleton manager (for mocking).
+    /// </summary>
+    public interface ISingletonManager
+    {
+        /// <summary>
+        /// Register a singleton with the singleton manager.
+        /// The singleton will be instantiated when InstantiateSingletons is called.
+        /// </summary>
+        void RegisterSingleton(SingletonDef singletonDef);
+    }
+
+    /// <summary>
     /// Manages singletons.
     /// </summary>
-    public class SingletonManager
+    public class SingletonManager : ISingletonManager
     {
         /// <summary>
         /// Singletons that are loaded.
@@ -39,22 +67,6 @@ namespace Utils
         private ILogger logger;
 
         /// <summary>
-        /// Defines a singleton.
-        /// </summary>
-        private struct SingletonDef
-        {
-            /// <summary>
-            /// The type of the singleton.
-            /// </summary>
-            public Type singletonType;
-
-            /// <summary>
-            /// Names of dependencies that the singleton satisfies.
-            /// </summary>
-            public string[] dependencyNames;
-        }
-
-        /// <summary>
         /// Definitions for all known (non-lazy) singletons.
         /// </summary>
         private List<SingletonDef> singletonDefs = new List<SingletonDef>();
@@ -72,45 +84,32 @@ namespace Utils
         }
 
         /// <summary>
+        /// Register a singleton with the singleton manager.
+        /// The singleton will be instantiated when InstantiateSingletons is called.
+        /// </summary>
+        public void RegisterSingleton(SingletonDef singletonDef)
+        {
+            Argument.NotNull(() => singletonDef);
+            Argument.NotNull(() => singletonDef.singletonType);
+
+            singletonDefs.Add(singletonDef);
+        }
+
+        /// <summary>
         /// Find a dependency to a singleton by name.
         /// Returns null if the singleton doesn't exist.
         /// </summary>
-        public object ResolveDependency(string name)
+        public object ResolveDependency(string dependencyName)
         {
+            Argument.StringNotNullOrEmpty(() => dependencyName);
+
             object singleton;
-            if (!dependencyCache.TryGetValue(name, out singleton))
+            if (!dependencyCache.TryGetValue(dependencyName, out singleton))
             {
                 return null;
             }
 
             return singleton;
-        }
-
-        /// <summary>
-        /// Scan for singleton types that are marked by either [Singleton] or [LazySingleton].
-        /// </summary>
-        public void ScanSingletonTypes()
-        {           
-            var types = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) });
-            var orderedTypes = factory.OrderByDeps<SingletonAttribute>(types, a => a.DependencyName);
-
-            logger.LogInfo("Found singletons: " + orderedTypes.Select(t => t.Name).Join(", "));
-
-            singletonDefs.AddRange(
-                orderedTypes.Select(type => 
-                    new SingletonDef()
-                    {
-                        singletonType = type,
-                        dependencyNames = reflection
-                            .GetAttributes<SingletonAttribute>(type)
-                            .Where(attribute => attribute.DependencyName != null)
-                            .Select(attribute => attribute.DependencyName)
-                            .ToArray()
-                    }
-                )
-            );
-
-            InstantiateSingletons();
         }
 
         /// <summary>
