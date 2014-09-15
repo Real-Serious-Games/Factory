@@ -111,6 +111,8 @@ namespace Utils.Tests
 
             Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
             Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+
+            mockFactory.Verify(m => m.Create(singletonType), Times.Once());
         }
 
         [Fact]
