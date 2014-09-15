@@ -52,7 +52,7 @@ namespace Utils.Tests
         {
             Init();
 
-            var singletonType = typeof(object); // Anythin will do here.
+            var singletonType = typeof(object); // Anything will do here.
             var singleton = new object();
             InitTestSingleton(singletonType, singleton);
 
@@ -60,6 +60,57 @@ namespace Utils.Tests
 
             Assert.Equal(1, testObject.Singletons.Length);
             Assert.Equal(singleton, testObject.Singletons[0]);
+        }
+
+        [Fact]
+        public void lazy_singleton_is_instantiated_on_resolve()
+        {
+            Init();
+
+            var singletonType = typeof(object); // Anything will do here.
+            var dependencyName = "dep";
+
+            testObject.RegisterSingleton(new SingletonDef()
+            {
+                singletonType = singletonType,
+                dependencyNames = new string[] { dependencyName },
+                lazy = true
+            });
+
+            testObject.InstantiateSingletons();
+
+            var singleton = new object();
+            mockFactory
+                .Setup(m => m.Create(singletonType))
+                .Returns(singleton);
+
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+        }
+
+        [Fact]
+        public void subsequent_resolve_of_lazy_singleton_gets_cached_object()
+        {
+            Init();
+
+            var singletonType = typeof(object); // Anything will do here.
+            var dependencyName = "dep";
+
+            testObject.RegisterSingleton(new SingletonDef()
+            {
+                singletonType = singletonType,
+                dependencyNames = new string[] { dependencyName },
+                lazy = true
+            });
+
+            testObject.InstantiateSingletons();
+
+            var singleton = new object();
+            mockFactory
+                .Setup(m => m.Create(singletonType))
+                .Returns(singleton);
+
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
         }
 
         [Fact]

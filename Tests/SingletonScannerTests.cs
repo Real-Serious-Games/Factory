@@ -10,9 +10,6 @@ namespace Factory.Tests
 {
     public class SingletonScannerTests
     {
-        //todo: test with no singleton types
-                //todo: test with dependency names
-
         [Fact]
         public void can_handle_finding_no_singleton_types()
         {
@@ -32,7 +29,7 @@ namespace Factory.Tests
         }
         
         [Fact]
-        public void can_find_singleton_type_marked_by_attribute()
+        public void can_find_and_register_singleton_type()
         {
             var singletonType = typeof(object); // Anything will do here.
 
@@ -50,7 +47,35 @@ namespace Factory.Tests
 
             mockSingletonManager.Verify(m => m.RegisterSingleton(It.Is<SingletonDef>(def =>
                 def.singletonType == singletonType &&
-                def.dependencyNames.Length == 0
+                def.dependencyNames.Length == 0 &&
+                !def.lazy
+            )), Times.Once());
+        }
+
+        [Fact]
+        public void can_find_and_register_lazy_singleton_type()
+        {
+            var singletonType = typeof(object); // Anything will do here.
+            var dependencyName = "dep";
+
+            var mockReflection = new Mock<IReflection>();
+            mockReflection
+                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
+                .Returns(new Type[] { singletonType });
+            mockReflection
+                .Setup(m => m.GetAttributes<SingletonAttribute>(singletonType))
+                .Returns(new SingletonAttribute[] { new LazySingletonAttribute(dependencyName) });
+
+            var mockLogger = new Mock<ILogger>();
+            var mockSingletonManager = new Mock<ISingletonManager>();
+
+            var testObject = new SingletonScanner(mockReflection.Object, mockLogger.Object, mockSingletonManager.Object);
+
+            testObject.ScanSingletonTypes();
+
+            mockSingletonManager.Verify(m => m.RegisterSingleton(It.Is<SingletonDef>(def =>
+                def.singletonType == singletonType &&
+                def.lazy
             )), Times.Once());
         }
 

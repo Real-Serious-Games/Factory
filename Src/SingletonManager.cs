@@ -10,7 +10,7 @@ namespace Utils
     /// <summary>
     /// Defines a singleton.
     /// </summary>
-    public struct SingletonDef
+    public class SingletonDef
     {
         /// <summary>
         /// The type of the singleton.
@@ -21,6 +21,11 @@ namespace Utils
         /// Names of dependencies that the singleton satisfies.
         /// </summary>
         public string[] dependencyNames;
+
+        /// <summary>
+        /// Set to true to make the singleton lazy. It will only be instantiated when resolved the first time.
+        /// </summary>
+        public bool lazy;
     }
 
     /// <summary>
@@ -106,6 +111,15 @@ namespace Utils
             object singleton;
             if (!dependencyCache.TryGetValue(dependencyName, out singleton))
             {
+                // See if we can lazy init the singleton.
+                var lazySingletonDef = singletonDefs
+                    .Where(singletonDef => singletonDef.lazy)
+                    .Where(singletonDef => singletonDef.dependencyNames.Contains(dependencyName))
+                    .FirstOrDefault();
+                if (lazySingletonDef != null)
+                {
+                    return InstantiateSingleton(lazySingletonDef);
+                }
                 return null;
             }
 
@@ -118,6 +132,7 @@ namespace Utils
         public void InstantiateSingletons()
         {
             Singletons = singletonDefs
+                .Where(singletonDef => !singletonDef.lazy)
                 .Select(InstantiateSingleton)
                 .ToArray();
         }

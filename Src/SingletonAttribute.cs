@@ -20,6 +20,11 @@ namespace Utils
         {
         }
 
+        public SingletonAttribute(Type interfaceType)
+        {
+            this.DependencyName = interfaceType.Name;
+        }
+
         public SingletonAttribute(string dependencyName)
         {
             this.DependencyName = dependencyName;
@@ -34,6 +39,14 @@ namespace Utils
             else
             {
                 return "Singleton";
+            }
+        }
+
+        public virtual bool Lazy
+        {
+            get
+            {
+                return false;
             }
         }
     }

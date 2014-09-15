@@ -41,7 +41,7 @@ namespace Factory
         /// <summary>
         /// Scan for singleton types that are marked by either [Singleton] or [LazySingleton].
         /// </summary>
-        public void ScanSingletonTypes()
+        public void ScanSingletonTypes() 
         {
             var singletonTypes = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) });
 
@@ -49,16 +49,19 @@ namespace Factory
 
             singletonTypes
                 .Select(type =>
-                    new SingletonDef()
+                {
+                    var attrs = reflection.GetAttributes<SingletonAttribute>(type).ToArray();
+
+                    return new SingletonDef()
                     {
                         singletonType = type,
-                        dependencyNames = reflection
-                            .GetAttributes<SingletonAttribute>(type)
+                        dependencyNames = attrs
                             .Where(attribute => attribute.DependencyName != null)
                             .Select(attribute => attribute.DependencyName)
-                            .ToArray()
-                    }
-                )
+                            .ToArray(),
+                        lazy = attrs.Any(atribute => atribute.Lazy)
+                    };
+                })
                 .Each(singletonDef => singletonManager.RegisterSingleton(singletonDef));            
         }
     }
