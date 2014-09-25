@@ -43,6 +43,7 @@
     <Compile Include="DependencyAttribute.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="FactoryCreatableAttribute.cs" />
+    <Compile Include="IDependencyProvider.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="IStartable.cs" />
     <Compile Include="LazySingletonAttribute.cs" />

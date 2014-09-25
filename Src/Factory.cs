@@ -96,11 +96,9 @@ namespace Utils
         IFactory Dep(string dependencyName, object dependency);
 
         /// <summary>
-        /// Register a plugin that can fulfil a dependency.
-        /// The plugin function should return null if the dependency can't be satisfied.
-        /// The plugin function is passed the name of the dependency.
+        /// Register a provider that can fulfil a dependency.
         /// </summary>
-        IFactory DepPlugin(Func<string, object> plugin);
+        IFactory AddDependencyProvider(IDependencyProvider provider);
 
         /// <summary>
         /// Remove a typed dependency from the factory.
@@ -187,14 +185,14 @@ namespace Utils
         private ILogger logger;
 
         /// <summary>
-        /// The dictionary that contains the dependencies.
+        /// Dictionary that contains pre-instantiated dependencies.
         /// </summary>
         private Dictionary<string, object> dependencies = new Dictionary<string, object>();
 
         /// <summary>
         /// List of plugins that are can provide dependencies when they are otherwise not satisfied within the factory.
         /// </summary>
-        private List<Func<string, object>> plugins = new List<Func<string, object>>();
+        private List<IDependencyProvider> dependencyProviders = new List<IDependencyProvider>();
 
         /// <summary>
         /// Name of the factory, useful for debugging.
@@ -603,13 +601,11 @@ namespace Utils
         }
 
         /// <summary>
-        /// Register a plugin that can fulfil a dependency.
-        /// The plugin function should return null if the dependency can't be satisfied.
-        /// The plugin function is passed the name of the dependency.
+        /// Register a provider that can fulfil a dependency.
         /// </summary>
-        public IFactory DepPlugin(Func<string, object> plugin)
+        public IFactory AddDependencyProvider(IDependencyProvider provider)
         {
-            plugins.Add(plugin);
+            dependencyProviders.Add(provider);
             return this;
         }
 
@@ -979,9 +975,18 @@ namespace Utils
             Argument.StringNotNullOrEmpty(() => dependencyName);
 
             // Query plugins to provide the dependency.
-            var pluginDependency = plugins
-                .Select(plugin => plugin(dependencyName))
+            var pluginDependency = dependencyProviders
+                .Select(provider => provider.FindDependency(dependencyName))
                 .Where(dep => dep != null)
+                .WhereMultiple((dependencies) =>
+                {
+                    var msg = 
+                        "Attempting to resolve a dependency via the dependency provider, but multiple dependencies have been found that match " + dependencyName + "\n" +
+                        "The following matches were found: \n" +
+                        dependencies.Select(dep => "\t" + dep.GetType().Name).Join("\n");
+
+                    throw new ApplicationException(msg);                        
+                })
                 .FirstOrDefault();
             if (pluginDependency != null)
             {

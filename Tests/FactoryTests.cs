@@ -154,6 +154,7 @@ namespace Utils.Tests
                 Assert.True(testObject.HasType(typeName));
             }
         }
+
         public class can_create_named_object
         {
             public class Test
@@ -638,10 +639,12 @@ namespace Utils.Tests
             var testObject = new Factory("test", mockLogger.Object);
             var testDep = new object();
             var requestedDepName = "Blah";
-            testObject.DepPlugin(depName => {
-                Assert.Equal(requestedDepName, depName);
-                return testDep;
-            });
+            var mockProvider = new Mock<IDependencyProvider>();
+            mockProvider
+                .Setup(m => m.FindDependency(requestedDepName))
+                .Returns(testDep);
+
+            testObject.AddDependencyProvider(mockProvider.Object);
 
             Assert.Equal(testDep, testObject.ResolveDep(requestedDepName));
         }
@@ -653,16 +656,18 @@ namespace Utils.Tests
             var testObject = new Factory("test", mockLogger.Object);
             var testDep = new object();
             var requestedDepName = "Blah";
-            testObject.DepPlugin(depName =>
-            {
-                Assert.Equal(requestedDepName, depName);
-                return null;
-            });
-            testObject.DepPlugin(depName =>
-            {
-                Assert.Equal(requestedDepName, depName);
-                return testDep;
-            });
+            var mockProvider1 = new Mock<IDependencyProvider>();
+            mockProvider1
+                .Setup(m => m.FindDependency(requestedDepName))
+                .Returns(null);
+
+            var mockProvider2 = new Mock<IDependencyProvider>();
+            mockProvider2
+                .Setup(m => m.FindDependency(requestedDepName))
+                .Returns(testDep);
+
+            testObject.AddDependencyProvider(mockProvider1.Object);
+            testObject.AddDependencyProvider(mockProvider2.Object);
 
             Assert.Equal(testDep, testObject.ResolveDep(requestedDepName));
         }

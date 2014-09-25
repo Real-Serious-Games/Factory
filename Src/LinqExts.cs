@@ -279,5 +279,18 @@ namespace Utils
 
             return source;
         }
+
+        /// <summary>
+        /// Invokes an action when the source contains more than 1 item.
+        /// </summary>
+        public static IEnumerable<T> WhereMultiple<T>(this IEnumerable<T> source, Action<IEnumerable<T>> action)
+        {
+            if (source.Skip(1).Any())
+            {
+                action(source);
+            }
+
+            return source;
+        }
     }
 }
