@@ -140,7 +140,7 @@ namespace Utils
             Argument.NotNull(() => factory);
 
             var nonLazySingletons = singletonDefs.Where(singletonDef => !singletonDef.lazy);
-            var sortedByDependency = OrderByDeps(nonLazySingletons, factory);
+            var sortedByDependency = OrderByDeps(nonLazySingletons, factory, logger);
 
             Singletons = sortedByDependency
                 .Select(singletonDef => InstantiateSingleton(singletonDef, factory))
@@ -203,10 +203,12 @@ namespace Utils
         /// <summary>
         /// Order specified types by their dependencies.
         /// </summary>
-        public static IEnumerable<SingletonDef> OrderByDeps(IEnumerable<SingletonDef> singletonDefs, IFactory factory)
+        public static IEnumerable<SingletonDef> OrderByDeps(IEnumerable<SingletonDef> singletonDefs, IFactory factory, ILogger logger)
         {
             Argument.NotNull(() => singletonDefs);
             Argument.NotNull(() => factory);
+
+            logger.LogInfo("Ordering singletons:");
 
             var dependencyMap = singletonDefs
                 .SelectMany(singletonDef =>
@@ -229,14 +231,22 @@ namespace Utils
             {
                 var singletonDef = defsRemaining.Dequeue();
 
-                var allDepsSatisfied =
-                    DetermineDeps(singletonDef.singletonType, factory)                  // Get the names of all types that this singleton is dependent on.
+                // Get the names of all types that this singleton is dependent on.
+                var singletonDependsOn = DetermineDeps(singletonDef.singletonType, factory).ToArray();
+
+                var allDepsSatisfied = singletonDependsOn                                                  
                     .Where(dependencyName => dependencyMap.ContainsKey(dependencyName)) // Only care about dependencies that are satisifed by other singletons.
                     .All(n => dependenciesSatisfied.Contains(n));                       // Have we seen all other singletons yet that this singleton is dependent on?
 
                 if (allDepsSatisfied)
                 {
                     output.Add(singletonDef);
+
+                    logger.LogInfo("\t" + singletonDef.singletonType.Name);
+                    logger.LogInfo("\t\tImplements: " + singletonDef.dependencyNames.Join(", "));
+                    logger.LogInfo("\t\tDepends on:");
+                    singletonDependsOn.Each(dependencyName => logger.LogInfo("\t\t\t" + dependencyName));
+
 
                     singletonDef.dependencyNames.Each(dependencyName => dependenciesSatisfied.Add(dependencyName));
                 }

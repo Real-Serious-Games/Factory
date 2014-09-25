@@ -337,7 +337,7 @@ namespace Utils.Tests
                 var def2 = InitDef(typeof(Test2));
                 var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(2, sorted.Length);
                 Assert.Equal(def1, sorted[0]);
@@ -372,7 +372,7 @@ namespace Utils.Tests
                 var def2 = InitDef(typeof(Test1), typeof(ITest1));
                 var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(2, sorted.Length);
                 Assert.Equal(def2, sorted[0]);
@@ -421,7 +421,7 @@ namespace Utils.Tests
                 var def3 = InitDef(typeof(Test2), typeof(ITest2));
                 var singletonDefs = new SingletonDef[] { def1, def2, def3 };
 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(3, sorted.Length);
                 Assert.Equal(def1, sorted[0]);
@@ -472,7 +472,7 @@ namespace Utils.Tests
                 var def2 = InitDef(typeof(Test1), typeof(ITest1));
                 var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(2, sorted.Length);
                 Assert.Equal(def2, sorted[0]);
@@ -505,7 +505,7 @@ namespace Utils.Tests
                 var def2 = InitDef(typeof(Test3));
                 var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(2, sorted.Length);
                 Assert.Equal(def1, sorted[0]);
@@ -521,7 +521,7 @@ namespace Utils.Tests
                 var def2 = InitDef(typeof(Test2));
                 var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(2, sorted.Length);
                 Assert.Equal(def1, sorted[0]);
@@ -576,7 +576,7 @@ namespace Utils.Tests
                 var def3 = InitDef(typeof(Test2), typeof(ITest2));
                 var singletonDefs = new SingletonDef[] { def1, def2, def3 };
                                 
-                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object).ToArray();
 
                 Assert.Equal(3, sorted.Length);
                 Assert.Equal(def1, sorted[0]);
@@ -619,7 +619,7 @@ namespace Utils.Tests
                 var singletonDefs = new SingletonDef[] { def1, def2 };
 
                 Assert.Throws<ApplicationException>(() =>
-                    SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object)
+                    SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object, new Mock<ILogger>().Object)
                 );
             }
         }

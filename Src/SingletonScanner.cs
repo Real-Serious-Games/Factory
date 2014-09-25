@@ -62,7 +62,8 @@ namespace Utils
                 })
                 .ToArray();
 
-            logger.LogInfo("Found singletons: \n" + singletonDefs.Select(def => def.ToString()).Join("\n"));
+            logger.LogInfo("Found singletons:");
+            singletonDefs.Each(def => logger.LogInfo("\t" + def.ToString()));
 
             singletonDefs
                 .Each(singletonDef => singletonManager.RegisterSingleton(singletonDef));            
