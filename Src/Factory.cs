@@ -959,7 +959,7 @@ namespace Utils
 
             // Query plugins to provide the dependency.
             var pluginDependency = dependencyProviders
-                .Select(provider => provider.FindDependency(dependencyName))
+                .Select(provider => provider.ResolveDependency(dependencyName))
                 .Where(dep => dep != null)
                 .WhereMultiple((dependencies) =>
                 {

@@ -21,7 +21,7 @@ namespace Utils.Tests
             mockFactory = new Mock<IFactory>();
             mockReflection = new Mock<IReflection>();
             mockLogger = new Mock<ILogger>();
-            testObject = new SingletonManager(mockReflection.Object, mockLogger.Object);
+            testObject = new SingletonManager(mockReflection.Object, mockLogger.Object, mockFactory.Object);
         }
 
         static void InitTestSingleton(Type singletonType, object singleton, params string[] dependencyNames)
@@ -144,7 +144,7 @@ namespace Utils.Tests
                 .Setup(m => m.Create(singletonType))
                 .Returns(singleton);
 
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
         }
 
         [Fact]
@@ -169,11 +169,52 @@ namespace Utils.Tests
                 .Setup(m => m.Create(singletonType))
                 .Returns(singleton);
 
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
 
             mockFactory.Verify(m => m.Create(singletonType), Times.Once());
         }
+
+        [Fact]
+        public void can_get_type_of_singleton()
+        {
+            Init();
+
+            var singletonType = typeof(object); // Anything will do here.
+            var dependencyName = "dep";
+
+            testObject.RegisterSingleton(new SingletonDef()
+            {
+                singletonType = singletonType,
+                dependencyNames = new string[] { dependencyName },
+                lazy = false
+            });
+
+            testObject.InstantiateSingletons(mockFactory.Object);
+
+            Assert.Equal(singletonType, testObject.FindDependencyType(dependencyName));
+        }
+
+        [Fact]
+        public void can_get_type_of_lazy_singleton()
+        {
+            Init();
+
+            var singletonType = typeof(object); // Anything will do here.
+            var dependencyName = "dep";
+
+            testObject.RegisterSingleton(new SingletonDef()
+            {
+                singletonType = singletonType,
+                dependencyNames = new string[] { dependencyName },
+                lazy = true
+            });
+
+            testObject.InstantiateSingletons(mockFactory.Object);
+
+            Assert.Equal(singletonType, testObject.FindDependencyType(dependencyName));
+        }
+
 
         [Fact]
         public void non_startable_singletons_are_ignored_on_start()
@@ -208,7 +249,7 @@ namespace Utils.Tests
         {
             Init();
 
-            Assert.Null(testObject.ResolveDependency("some singleton that doesnt exist", mockFactory.Object));
+            Assert.Null(testObject.ResolveDependency("some singleton that doesnt exist"));
         }
 
         [Fact]
@@ -223,7 +264,7 @@ namespace Utils.Tests
 
             testObject.InstantiateSingletons(mockFactory.Object);
 
-            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName, mockFactory.Object));
+            Assert.Equal(singleton, testObject.ResolveDependency(dependencyName));
         }
 
         [Fact]

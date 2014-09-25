@@ -663,7 +663,7 @@ namespace Utils.Tests
             var requestedDepName = "Blah";
             var mockProvider = new Mock<IDependencyProvider>();
             mockProvider
-                .Setup(m => m.FindDependency(requestedDepName))
+                .Setup(m => m.ResolveDependency(requestedDepName))
                 .Returns(testDep);
 
             testObject.AddDependencyProvider(mockProvider.Object);
@@ -680,12 +680,12 @@ namespace Utils.Tests
             var requestedDepName = "Blah";
             var mockProvider1 = new Mock<IDependencyProvider>();
             mockProvider1
-                .Setup(m => m.FindDependency(requestedDepName))
+                .Setup(m => m.ResolveDependency(requestedDepName))
                 .Returns(null);
 
             var mockProvider2 = new Mock<IDependencyProvider>();
             mockProvider2
-                .Setup(m => m.FindDependency(requestedDepName))
+                .Setup(m => m.ResolveDependency(requestedDepName))
                 .Returns(testDep);
 
             testObject.AddDependencyProvider(mockProvider1.Object);

@@ -11,10 +11,10 @@ namespace Utils
     public interface IDependencyProvider
     {
         /// <summary>
-        /// Retreive a named dependency.
+        /// Resolved a named dependency.
         /// Return null if the dependency was not found.
         /// </summary>
-        object FindDependency(string dependencyName);
+        object ResolveDependency(string dependencyName);
 
         /// <summary>
         /// Find the type of a named dependency.

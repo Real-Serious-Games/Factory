@@ -44,18 +44,12 @@ namespace Utils
         /// The singleton will be instantiated when InstantiateSingletons is called.
         /// </summary>
         void RegisterSingleton(SingletonDef singletonDef);
-
-        /// <summary>
-        /// Find a dependency to a singleton by name.
-        /// Returns null if the singleton doesn't exist.
-        /// </summary>
-        object ResolveDependency(string dependencyName, IFactory factory);
     }
 
     /// <summary>
     /// Manages singletons.
     /// </summary>
-    public class SingletonManager : ISingletonManager
+    public class SingletonManager : ISingletonManager, IDependencyProvider
     {
         /// <summary>
         /// Singletons that are loaded.
@@ -66,6 +60,11 @@ namespace Utils
         /// For mockable C# reflection services.
         /// </summary>
         private IReflection reflection;
+
+        /// <summary>
+        /// Factory used to instantiate singletons.
+        /// </summary>
+        private IFactory factory;
 
         /// <summary>
         /// Map that allows singletons to be dependency injected.
@@ -83,13 +82,15 @@ namespace Utils
         /// </summary>
         private List<SingletonDef> singletonDefs = new List<SingletonDef>();
 
-        public SingletonManager(IReflection reflection, ILogger logger)
+        public SingletonManager(IReflection reflection, ILogger logger, IFactory factory)
         {
             Argument.NotNull(() => reflection);
             Argument.NotNull(() => logger);
+            Argument.NotNull(() => factory);
 
             this.reflection = reflection;
             this.logger = logger;
+            this.factory = factory;
             this.Singletons = new object[0];
         }
 
@@ -106,10 +107,10 @@ namespace Utils
         }
 
         /// <summary>
-        /// Find a dependency to a singleton by name.
-        /// Returns null if the singleton doesn't exist.
+        /// Resolve a singleton that matches the requested dependency name.
+        /// Returns null if none was found.
         /// </summary>
-        public object ResolveDependency(string dependencyName, IFactory factory)
+        public object ResolveDependency(string dependencyName)
         {
             Argument.StringNotNullOrEmpty(() => dependencyName);
             Argument.NotNull(() => factory);
@@ -130,6 +131,29 @@ namespace Utils
             }
 
             return singleton;
+        }
+
+        /// <summary>
+        /// Find the type of a singleton that matches the requested dependency name.
+        /// Returns null if none was found.
+        /// </summary>
+        public Type FindDependencyType(string dependencyName)
+        {
+            Argument.StringNotNullOrEmpty(() => dependencyName);
+
+            return singletonDefs
+                .Where(singletonDef => singletonDef.dependencyNames.Contains(dependencyName))
+                .WhereMultiple((matchingSingletonDefs) =>
+                {
+                    var msg =
+                        "Multiple singleton definitions match dependency " + dependencyName + "\n" +
+                        "Matching singletons:\n" +
+                        matchingSingletonDefs.Select(def => "\t" + def.singletonType.Name).Join("\n");
+
+                    throw new ApplicationException(msg);
+                })
+                .Select(singletonDef => singletonDef.singletonType)
+                .FirstOrDefault();
         }
 
         /// <summary>
