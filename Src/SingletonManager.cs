@@ -40,10 +40,30 @@ namespace Utils
     public interface ISingletonManager
     {
         /// <summary>
+        /// Singletons that are instantiated.
+        /// </summary>
+        object[] Singletons { get; }
+
+        /// <summary>
         /// Register a singleton with the singleton manager.
         /// The singleton will be instantiated when InstantiateSingletons is called.
         /// </summary>
         void RegisterSingleton(SingletonDef singletonDef);
+
+        /// <summary>
+        /// Instantiate all known (non-lazy) singletons.
+        /// </summary>
+        void InstantiateSingletons(IFactory factory);
+
+        /// <summary>
+        /// Start singletons that are startable.
+        /// </summary>
+        void Start();
+
+        /// <summary>
+        /// Shutdown started singletons.
+        /// </summary>
+        void Shutdown();
     }
 
     /// <summary>
@@ -52,7 +72,7 @@ namespace Utils
     public class SingletonManager : ISingletonManager, IDependencyProvider
     {
         /// <summary>
-        /// Singletons that are loaded.
+        /// Singletons that are instantiated.
         /// </summary>
         public object[] Singletons { get; private set; }
 
