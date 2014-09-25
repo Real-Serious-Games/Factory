@@ -60,18 +60,6 @@ namespace Utils
         /// </summary>
         Type FindType(string typeName);
 
-        /*fio:
-        /// <summary>
-        /// Returns true if the specified type can be instantiated by the factory
-        /// </summary>
-        bool HasType<InterfaceT>();
-
-        /// <summary>
-        /// Returns true if the specified type can be instantiated by the factory
-        /// </summary>
-        bool HasType(string typeName);
-         * */
-
         /// <summary>
         /// Create a factory override, where the dependencies can be modified.
         /// </summary>
@@ -161,7 +149,7 @@ namespace Utils
         /// Resolve a dependency by quering plugins.
         /// Returns null if dependency was not found.
         /// </summary>
-        object ResolvePluginDep(string dependencyName);
+        object ResolveDependency(string dependencyName);
     }
 
     /// <summary>
@@ -935,6 +923,13 @@ namespace Utils
                 {
                     return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
                 }
+
+                // Query providers to provide the dependency.
+                var pluginDependency = ResolveDependency(dependencyName);
+                if (pluginDependency != null)
+                {
+                    return pluginDependency;
+                }
                 
                 if (fallbackFactory != null)
                 {
@@ -945,12 +940,6 @@ namespace Utils
                     }                    
                 }
 
-                // Query plugins to provide the dependency.
-                var pluginDependency = ResolvePluginDep(dependencyName);
-                if (pluginDependency != null)
-                {
-                    return pluginDependency;
-                }
 
                 throw new ApplicationException("Failed to find or create dependency " + dependencyName);
             }
@@ -964,7 +953,7 @@ namespace Utils
         /// Resolve a dependency by quering plugins.
         /// Returns null if dependency was not found.
         /// </summary>
-        public object ResolvePluginDep(string dependencyName)
+        public object ResolveDependency(string dependencyName)
         {
             Argument.StringNotNullOrEmpty(() => dependencyName);
 
@@ -989,7 +978,7 @@ namespace Utils
             }
             else if (fallbackFactory != null)
             {
-                return fallbackFactory.ResolvePluginDep(dependencyName);
+                return fallbackFactory.ResolveDependency(dependencyName);
             }
 
             return null;

@@ -703,7 +703,7 @@ namespace Utils.Tests
             var testDep = new object();
             var requestedDepName = "Blah";
             mockFallbackFactory
-                .Setup(m => m.ResolvePluginDep(requestedDepName))
+                .Setup(m => m.ResolveDependency(requestedDepName))
                 .Returns(testDep);
 
             Assert.Equal(testDep, testObject.ResolveDep(requestedDepName));
