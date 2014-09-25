@@ -241,35 +241,15 @@ namespace Utils.Tests
             mockLogger.Verify(m => m.LogError(It.IsAny<string>(), It.IsAny<ApplicationException>()), Times.Once());
         }
 
-        [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-        public class TestFactoryCreatableAttribute : Attribute
+        private static SingletonDef InitDef(Type singletonType, params Type[] interfaceTypes)
         {
-            public string TypeName
+            return new SingletonDef()
             {
-                get;
-                private set;
-            }
-
-            public TestFactoryCreatableAttribute()
-            {
-            }
-
-            public TestFactoryCreatableAttribute(string typeName)
-            {
-                this.TypeName = typeName;
-            }
-
-            public TestFactoryCreatableAttribute(Type interfaceType)
-            {
-                this.TypeName = interfaceType.Name;
-            }
-
-            public TestFactoryCreatableAttribute(Type viewType, Type dataInterfaceType)
-            {
-                this.TypeName = viewType.Name + "_" + dataInterfaceType.Name;
-            }
+                singletonType = singletonType,
+                dependencyNames = interfaceTypes.Select(type => type.Name).ToArray()
+            };
         }
- 
+
         public class can_order_types_based_on_dependencies_when_types_are_already_in_correct_order
         {
             public interface ITest1
@@ -277,7 +257,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest1))]
             public class Test1 : ITest1
             {
 
@@ -292,15 +271,17 @@ namespace Utils.Tests
             [Fact(Timeout = 1000)]
             public void test()
             {
-                var types = new Type[] { typeof(Test1), typeof(Test2) };
-
-                var mockLogger = new Mock<ILogger>();
                 var mockFactory = new Mock<IFactory>();
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var def1 = InitDef(typeof(Test1), typeof(ITest1));
+                var def2 = InitDef(typeof(Test2));
+                var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                Assert.Equal(typeof(Test1), sorted[0]);
-                Assert.Equal(typeof(Test2), sorted[1]);
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+
+                Assert.Equal(2, sorted.Length);
+                Assert.Equal(def1, sorted[0]);
+                Assert.Equal(def2, sorted[1]);
             }
         }
 
@@ -311,7 +292,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest1))]
             public class Test1 : ITest1
             {
 
@@ -326,15 +306,17 @@ namespace Utils.Tests
             [Fact(Timeout = 1000)]
             public void test()
             {
-                var types = new Type[] { typeof(Test2), typeof(Test1) };
-
-                var mockLogger = new Mock<ILogger>();
                 var mockFactory = new Mock<IFactory>();
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var def1 = InitDef(typeof(Test2));
+                var def2 = InitDef(typeof(Test1), typeof(ITest1));
+                var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                Assert.Equal(typeof(Test1), sorted[0]);
-                Assert.Equal(typeof(Test2), sorted[1]);
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
+
+                Assert.Equal(2, sorted.Length);
+                Assert.Equal(def2, sorted[0]);
+                Assert.Equal(def1, sorted[1]);
             }
         }
 
@@ -345,7 +327,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest1))]
             public class Test1 : ITest1
             {
 
@@ -356,7 +337,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest2))]
             public class Test2 : ITest2
             {
 
@@ -374,16 +354,19 @@ namespace Utils.Tests
             [Fact(Timeout = 1000)]
             public void test()
             {
-                var types = new Type[] { typeof(Test1), typeof(Test3), typeof(Test2) };
+                var mockFactory = new Mock<IFactory>();
 
-                var mockLogger = new Mock<ILogger>();
-                var mockFactory = new Mock<IFactory>();                
+                var def1 = InitDef(typeof(Test1), typeof(ITest1));
+                var def2 = InitDef(typeof(Test3));
+                var def3 = InitDef(typeof(Test2), typeof(ITest2));
+                var singletonDefs = new SingletonDef[] { def1, def2, def3 };
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
 
-                Assert.Equal(typeof(Test1), sorted[0]);
-                Assert.Equal(typeof(Test2), sorted[1]);
-                Assert.Equal(typeof(Test3), sorted[2]);
+                Assert.Equal(3, sorted.Length);
+                Assert.Equal(def1, sorted[0]);
+                Assert.Equal(def3, sorted[1]);
+                Assert.Equal(def2, sorted[2]);
             }
         }
 
@@ -394,7 +377,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest1))]
             public class Test1 : ITest1
             {
 
@@ -420,20 +402,21 @@ namespace Utils.Tests
             [Fact(Timeout = 1000)]
             public void test()
             {
-                var types = new Type[] { typeof(Test3), typeof(Test1) };
-
-                var mockLogger = new Mock<ILogger>();
                 var mockFactory = new Mock<IFactory>();
 
                 mockFactory
                     .Setup(m => m.FindType(typeof(ITest2).Name))
                     .Returns(typeof(Test2));
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var def1 = InitDef(typeof(Test3));
+                var def2 = InitDef(typeof(Test1), typeof(ITest1));
+                var singletonDefs = new SingletonDef[] { def1, def2 };
+
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
 
                 Assert.Equal(2, sorted.Length);
-                Assert.Equal(typeof(Test1), sorted[0]);
-                Assert.Equal(typeof(Test3), sorted[1]);
+                Assert.Equal(def2, sorted[0]);
+                Assert.Equal(def1, sorted[1]);
             }
         }
         public class can_order_types_with_unspecified_dependencies
@@ -456,29 +439,33 @@ namespace Utils.Tests
             [Fact(Timeout = 1000)]
             public void test()
             {
-                var types = new Type[] { typeof(Test2), typeof(Test3) };
+                var mockFactory = new Mock<IFactory>();
 
-                var mockLogger = new Mock<ILogger>();
-                var mockFactory = new Mock<IFactory>();                
+                var def1 = InitDef(typeof(Test2));
+                var def2 = InitDef(typeof(Test3));
+                var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
 
-                Assert.Equal(typeof(Test2), sorted[0]);
-                Assert.Equal(typeof(Test3), sorted[1]);
+                Assert.Equal(2, sorted.Length);
+                Assert.Equal(def1, sorted[0]);
+                Assert.Equal(def2, sorted[1]);
             }
 
             [Fact(Timeout = 1000)]
             public void reverse()
             {
-                var types = new Type[] { typeof(Test3), typeof(Test2) };
+                var mockFactory = new Mock<IFactory>();
 
-                var mockLogger = new Mock<ILogger>();
-                var mockFactory = new Mock<IFactory>();                
+                var def1 = InitDef(typeof(Test3));
+                var def2 = InitDef(typeof(Test2));
+                var singletonDefs = new SingletonDef[] { def1, def2 };
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
 
-                Assert.Equal(typeof(Test3), sorted[0]);
-                Assert.Equal(typeof(Test2), sorted[1]);
+                Assert.Equal(2, sorted.Length);
+                Assert.Equal(def1, sorted[0]);
+                Assert.Equal(def2, sorted[1]);
             }
         }
 
@@ -489,7 +476,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest1))]
             public class Test1 : ITest1
             {
 
@@ -500,7 +486,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest2))]
             public class Test2 : ITest2
             {
 
@@ -524,13 +509,19 @@ namespace Utils.Tests
                 var types = new Type[] { typeof(Test1), typeof(Test3), typeof(Test2) };
 
                 var mockLogger = new Mock<ILogger>();
-                var mockFactory = new Mock<IFactory>();                
+                var mockFactory = new Mock<IFactory>();
 
-                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+                var def1 = InitDef(typeof(Test1), typeof(ITest1));
+                var def2 = InitDef(typeof(Test3));
+                var def3 = InitDef(typeof(Test2), typeof(ITest2));
+                var singletonDefs = new SingletonDef[] { def1, def2, def3 };
+                                
+                var sorted = SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object).ToArray();
 
-                Assert.Equal(typeof(Test1), sorted[0]);
-                Assert.Equal(typeof(Test2), sorted[1]);
-                Assert.Equal(typeof(Test3), sorted[2]);
+                Assert.Equal(3, sorted.Length);
+                Assert.Equal(def1, sorted[0]);
+                Assert.Equal(def3, sorted[1]);
+                Assert.Equal(def2, sorted[2]);
             }
         }
 
@@ -541,7 +532,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest1))]
             public class Test1 : ITest1
             {
                 [Dependency]
@@ -553,7 +543,6 @@ namespace Utils.Tests
 
             }
 
-            [TestFactoryCreatable(typeof(ITest2))]
             public class Test2 : ITest2
             {
                 [Dependency]
@@ -563,13 +552,14 @@ namespace Utils.Tests
             [Fact(Timeout = 1000)]
             public void test()
             {
-                var types = new Type[] { typeof(Test1), typeof(Test2) };
-
-                var mockLogger = new Mock<ILogger>();
                 var mockFactory = new Mock<IFactory>();
 
+                var def1 = InitDef(typeof(Test1), typeof(ITest1));
+                var def2 = InitDef(typeof(Test2), typeof(ITest2));
+                var singletonDefs = new SingletonDef[] { def1, def2 };
+
                 Assert.Throws<ApplicationException>(() =>
-                    SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object)
+                    SingletonManager.OrderByDeps(singletonDefs, mockFactory.Object)
                 );
             }
         }

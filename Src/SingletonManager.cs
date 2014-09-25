@@ -1,6 +1,7 @@
 ﻿using Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Utils.Dbg;
@@ -198,66 +199,57 @@ namespace Utils
         }
 
         /// <summary>
-        /// Get the factory names for the specified type.
-        /// </summary>
-        public static IEnumerable<string> GetFactoryNames<AttributeT>(Type type, Func<AttributeT, string> typeNameSelector)
-            where AttributeT : Attribute
-        {
-            return ReflectionUtils
-                .GetAttributes<AttributeT>(type)
-                .Select(a => typeNameSelector(a))
-                .Where(n => !string.IsNullOrEmpty(n));
-        }
-
-        /// <summary>
         /// Order specified types by their dependencies.
         /// </summary>
-        public static IEnumerable<Type> OrderByDeps<AttributeT>(IEnumerable<Type> types, Func<AttributeT, string> typeNameSelector, IFactory factory)
-            where AttributeT : Attribute
+        public static IEnumerable<SingletonDef> OrderByDeps(IEnumerable<SingletonDef> singletonDefs, IFactory factory)
         {
-            var dependencyMap = types
-                .SelectMany(t =>
+            Argument.NotNull(() => singletonDefs);
+            Argument.NotNull(() => factory);
+
+            var dependencyMap = singletonDefs
+                .SelectMany(singletonDef =>
                 {
-                    return GetFactoryNames(t, typeNameSelector)
-                        .Select(n => new { Type = t, TypeName = n });
+                    return singletonDef.dependencyNames
+                        .Select(dependencyName => new 
+                        { 
+                            Type = singletonDef, 
+                            DependencyName = dependencyName 
+                        });
                 })
-                .ToDictionary(i => i.TypeName, i => i.Type);
+                .ToDictionary(i => i.DependencyName, i => i.Type);
 
-            var typesRemaining = new Queue<Type>(types);
+            var defsRemaining = new Queue<SingletonDef>(singletonDefs);
             var dependenciesSatisfied = new HashSet<string>();
-            var output = new List<Type>();
-            var typesAlreadySeen = new HashSet<Type>();
+            var output = new List<SingletonDef>();
+            var defsAlreadySeen = new HashSet<SingletonDef>();
 
-            while (typesRemaining.Count > 0)
+            while (defsRemaining.Count > 0)
             {
-                var type = typesRemaining.Dequeue();
+                var singletonDef = defsRemaining.Dequeue();
 
                 var allDepsSatisfied =
-                    DetermineDeps(type, factory)
-                    .Where(n => dependencyMap.ContainsKey(n))
-                    .All(n => dependenciesSatisfied.Contains(n));
+                    DetermineDeps(singletonDef.singletonType, factory)                  // Get the names of all types that this singleton is dependent on.
+                    .Where(dependencyName => dependencyMap.ContainsKey(dependencyName)) // Only care about dependencies that are satisifed by other singletons.
+                    .All(n => dependenciesSatisfied.Contains(n));                       // Have we seen all other singletons yet that this singleton is dependent on?
 
                 if (allDepsSatisfied)
                 {
-                    output.Add(type);
+                    output.Add(singletonDef);
 
-                    ReflectionUtils.GetAttributes<AttributeT>(type)
-                        .Select(a => typeNameSelector(a))
-                        .Where(n => !string.IsNullOrEmpty(n))
-                        .Each(n => dependenciesSatisfied.Add(n));
+                    singletonDef.dependencyNames.Each(dependencyName => dependenciesSatisfied.Add(dependencyName));
                 }
                 else
                 {
-                    if (typesAlreadySeen.Contains(type))
+                    if (defsAlreadySeen.Contains(singletonDef))
                     {
-                        throw new ApplicationException("Already seen type: " + type.Name + ", it is possible there is a circular dependency between types.");
+                        throw new ApplicationException("Already seen type: " + singletonDef.singletonType.Name + ", it is possible there is a circular dependency between types.");
                     }
 
                     // Record the types we have already attempted to process to make sure we are not 
                     // iterating forever on a circular dependency.
-                    typesAlreadySeen.Add(type);
+                    defsAlreadySeen.Add(singletonDef);
 
-                    typesRemaining.Enqueue(type);
+                    defsRemaining.Enqueue(singletonDef);
                 }
             }
 
