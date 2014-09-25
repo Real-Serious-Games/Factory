@@ -11,12 +11,12 @@ namespace Utils.Tests
 {
     public class SingletonManagerTests
     {
-        Mock<ILogger> mockLogger;
-        Mock<IFactory> mockFactory;
-        Mock<IReflection> mockReflection;
-        SingletonManager testObject;
+        static Mock<ILogger> mockLogger;
+        static Mock<IFactory> mockFactory;
+        static Mock<IReflection> mockReflection;
+        static SingletonManager testObject;
 
-        void Init()
+        static void Init()
         {
             mockFactory = new Mock<IFactory>();
             mockReflection = new Mock<IReflection>();
@@ -24,7 +24,7 @@ namespace Utils.Tests
             testObject = new SingletonManager(mockReflection.Object, mockLogger.Object);
         }
 
-        private void InitTestSingleton(Type singletonType, object singleton, params string[] dependencyNames)
+        static void InitTestSingleton(Type singletonType, object singleton, params string[] dependencyNames)
         {
             testObject.RegisterSingleton(new SingletonDef()
             {
@@ -48,7 +48,7 @@ namespace Utils.Tests
         }
 
         [Fact]
-        public void can_find_instantiate_registered_singleton()
+        public void can_instantiate_registered_singleton()
         {
             Init();
 
@@ -62,6 +62,66 @@ namespace Utils.Tests
             Assert.Equal(singleton, testObject.Singletons[0]);
         }
 
+        public class can_instantiate_dependent_singletons
+        {
+            public interface ITest1
+            {
+
+            }
+
+            public class Test1 : ITest1
+            {
+
+            }
+
+            public class Test2
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+            }
+
+
+            [Fact]
+            public void when_in_correct_order()
+            {
+                Init();
+
+                var singletonType1 = typeof(Test1);
+                var singleton1 = new Test1();
+                InitTestSingleton(singletonType1, singleton1, typeof(ITest1).Name);
+
+                var singletonType2 = typeof(Test2);
+                var singleton2 = new Test2();
+                InitTestSingleton(singletonType2, singleton2);
+
+                testObject.InstantiateSingletons(mockFactory.Object);
+
+                Assert.Equal(2, testObject.Singletons.Length);
+                Assert.Equal(singleton1, testObject.Singletons[0]);
+                Assert.Equal(singleton2, testObject.Singletons[1]);
+            }
+
+            [Fact]
+            public void when_out_of_order()
+            {
+                Init();
+
+                var singletonType2 = typeof(Test2);
+                var singleton2 = new Test2();
+                InitTestSingleton(singletonType2, singleton2);
+
+                var singletonType1 = typeof(Test1);
+                var singleton1 = new Test1();
+                InitTestSingleton(singletonType1, singleton1, typeof(ITest1).Name);
+
+                testObject.InstantiateSingletons(mockFactory.Object);
+
+                Assert.Equal(2, testObject.Singletons.Length);
+                Assert.Equal(singleton1, testObject.Singletons[0]);
+                Assert.Equal(singleton2, testObject.Singletons[1]);
+            }
+        }
+        
         [Fact]
         public void lazy_singleton_is_instantiated_on_resolve()
         {

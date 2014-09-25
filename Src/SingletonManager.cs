@@ -139,8 +139,10 @@ namespace Utils
         {
             Argument.NotNull(() => factory);
 
-            Singletons = singletonDefs
-                .Where(singletonDef => !singletonDef.lazy)
+            var nonLazySingletons = singletonDefs.Where(singletonDef => !singletonDef.lazy);
+            var sortedByDependency = OrderByDeps(nonLazySingletons, factory);
+
+            Singletons = sortedByDependency
                 .Select(singletonDef => InstantiateSingleton(singletonDef, factory))
                 .ToArray();
         }
