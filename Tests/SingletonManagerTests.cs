@@ -241,5 +241,337 @@ namespace Utils.Tests
             mockLogger.Verify(m => m.LogError(It.IsAny<string>(), It.IsAny<ApplicationException>()), Times.Once());
         }
 
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+        public class TestFactoryCreatableAttribute : Attribute
+        {
+            public string TypeName
+            {
+                get;
+                private set;
+            }
+
+            public TestFactoryCreatableAttribute()
+            {
+            }
+
+            public TestFactoryCreatableAttribute(string typeName)
+            {
+                this.TypeName = typeName;
+            }
+
+            public TestFactoryCreatableAttribute(Type interfaceType)
+            {
+                this.TypeName = interfaceType.Name;
+            }
+
+            public TestFactoryCreatableAttribute(Type viewType, Type dataInterfaceType)
+            {
+                this.TypeName = viewType.Name + "_" + dataInterfaceType.Name;
+            }
+        }
+ 
+        public class can_order_types_based_on_dependencies_when_types_are_already_in_correct_order
+        {
+            public interface ITest1
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest1))]
+            public class Test1 : ITest1
+            {
+
+            }
+
+            public class Test2
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test1), typeof(Test2) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(typeof(Test1), sorted[0]);
+                Assert.Equal(typeof(Test2), sorted[1]);
+            }
+        }
+
+        public class can_order_types_based_on_dependencies_with_two_types_out_of_order
+        {
+            public interface ITest1
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest1))]
+            public class Test1 : ITest1
+            {
+
+            }
+
+            public class Test2
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test2), typeof(Test1) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(typeof(Test1), sorted[0]);
+                Assert.Equal(typeof(Test2), sorted[1]);
+            }
+        }
+
+        public class can_order_types_based_on_dependencies_with_multiple_dependent_types
+        {
+            public interface ITest1
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest1))]
+            public class Test1 : ITest1
+            {
+
+            }
+
+            public interface ITest2
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest2))]
+            public class Test2 : ITest2
+            {
+
+            }
+
+            public class Test3
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+
+                [Dependency]
+                public ITest2 Test2 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test1), typeof(Test3), typeof(Test2) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();                
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(typeof(Test1), sorted[0]);
+                Assert.Equal(typeof(Test2), sorted[1]);
+                Assert.Equal(typeof(Test3), sorted[2]);
+            }
+        }
+
+        public class can_order_types_based_on_property_dependencies_with_intermediate_type
+        {
+            public interface ITest1
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest1))]
+            public class Test1 : ITest1
+            {
+
+            }
+
+            public interface ITest2
+            {
+
+            }
+
+            public class Test2 : ITest2
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+            }
+
+            public class Test3
+            {
+                [Dependency]
+                public ITest2 Test2 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test3), typeof(Test1) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();
+
+                mockFactory
+                    .Setup(m => m.FindType(typeof(ITest2).Name))
+                    .Returns(typeof(Test2));
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(2, sorted.Length);
+                Assert.Equal(typeof(Test1), sorted[0]);
+                Assert.Equal(typeof(Test3), sorted[1]);
+            }
+        }
+        public class can_order_types_with_unspecified_dependencies
+        {
+            public interface ITest1
+            {
+
+            }
+
+            public class Test2
+            {
+            }
+
+            public class Test3
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test2), typeof(Test3) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();                
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(typeof(Test2), sorted[0]);
+                Assert.Equal(typeof(Test3), sorted[1]);
+            }
+
+            [Fact(Timeout = 1000)]
+            public void reverse()
+            {
+                var types = new Type[] { typeof(Test3), typeof(Test2) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();                
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(typeof(Test3), sorted[0]);
+                Assert.Equal(typeof(Test2), sorted[1]);
+            }
+        }
+
+        public class can_order_types_based_on_constructor_dependencies_with_multiple_dependent_types
+        {
+            public interface ITest1
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest1))]
+            public class Test1 : ITest1
+            {
+
+            }
+
+            public interface ITest2
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest2))]
+            public class Test2 : ITest2
+            {
+
+            }
+
+            public class Test3
+            {
+                public Test3(ITest1 test1, ITest2 test2)
+                {
+                    this.Test1 = test1;
+                    this.Test2 = Test2;
+                }
+
+                public ITest1 Test1 { get; set; }
+                public ITest2 Test2 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test1), typeof(Test3), typeof(Test2) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();                
+
+                var sorted = SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object).ToArray();
+
+                Assert.Equal(typeof(Test1), sorted[0]);
+                Assert.Equal(typeof(Test2), sorted[1]);
+                Assert.Equal(typeof(Test3), sorted[2]);
+            }
+        }
+
+        public class throws_when_attempting_to_order_types_that_have_circular_dependency
+        {
+            public interface ITest1
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest1))]
+            public class Test1 : ITest1
+            {
+                [Dependency]
+                public ITest2 Test2 { get; set; }
+            }
+
+            public interface ITest2
+            {
+
+            }
+
+            [TestFactoryCreatable(typeof(ITest2))]
+            public class Test2 : ITest2
+            {
+                [Dependency]
+                public ITest1 Test1 { get; set; }
+            }
+
+            [Fact(Timeout = 1000)]
+            public void test()
+            {
+                var types = new Type[] { typeof(Test1), typeof(Test2) };
+
+                var mockLogger = new Mock<ILogger>();
+                var mockFactory = new Mock<IFactory>();
+
+                Assert.Throws<ApplicationException>(() =>
+                    SingletonManager.OrderByDeps<TestFactoryCreatableAttribute>(types, a => a.TypeName, mockFactory.Object)
+                );
+            }
+        }
     }
 }

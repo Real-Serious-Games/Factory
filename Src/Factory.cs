@@ -162,12 +162,6 @@ namespace Utils
         /// Returns null if dependency was not found.
         /// </summary>
         object ResolvePluginDep(string dependencyName);
-
-        /// <summary>
-        /// Order specified types by their dependencies.
-        /// </summary>
-        IEnumerable<Type> OrderByDeps<AttributeT>(IEnumerable<Type> types, Func<AttributeT, string> typeNameSelector)
-            where AttributeT : Attribute;
     }
 
     /// <summary>
@@ -1002,109 +996,5 @@ namespace Utils
             return null;
         }
 
-        /// <summary>
-        /// Get the factory names for the specified type.
-        /// </summary>
-        public IEnumerable<string> GetFactoryNames<AttributeT>(Type type, Func<AttributeT, string> typeNameSelector)
-            where AttributeT : Attribute
-        {
-            return ReflectionUtils
-                .GetAttributes<AttributeT>(type)
-                .Select(a => typeNameSelector(a))
-                .Where(n => !string.IsNullOrEmpty(n));
-        }
-
-        /// <summary>
-        /// Order specified types by their dependencies.
-        /// </summary>
-        public IEnumerable<Type> OrderByDeps<AttributeT>(IEnumerable<Type> types, Func<AttributeT, string> typeNameSelector)
-            where AttributeT : Attribute
-        {
-            var dependencyMap = types
-                .SelectMany(t => 
-                {
-                    return GetFactoryNames(t, typeNameSelector)
-                        .Select(n => new { Type = t, TypeName = n });
-                })
-                .ToDictionary(i => i.TypeName, i => i.Type);
-
-            var typesRemaining = new Queue<Type>(types);
-            var dependenciesSatisfied = new HashSet<string>();
-            var output = new List<Type>();
-            var typesAlreadySeen = new HashSet<Type>();
-
-            while (typesRemaining.Count > 0)
-            {
-                var type = typesRemaining.Dequeue();
-
-                var allDepsSatisfied = 
-                    DetermineDeps(type)
-                    .Where(n => dependencyMap.ContainsKey(n))
-                    .All(n => dependenciesSatisfied.Contains(n));
-
-                if (allDepsSatisfied)
-                {
-                    output.Add(type);
-
-                    ReflectionUtils.GetAttributes<AttributeT>(type)
-                        .Select(a => typeNameSelector(a))
-                        .Where(n => !string.IsNullOrEmpty(n))
-                        .Each(n => dependenciesSatisfied.Add(n));
-                }
-                else
-                {
-                    if (typesAlreadySeen.Contains(type))
-                    {
-                        throw new ApplicationException("Already seen type: " + type.Name + ", it is possible there is a circular dependency between types.");
-                    }
-
-                    // Record the types we have already attempted to process to make sure we are not 
-                    // iterating forever on a circular dependency.
-                    typesAlreadySeen.Add(type);
-
-                    typesRemaining.Enqueue(type);
-                }
             }
-
-            return output.ToArray();
-        }
-
-        /// <summary>
-        /// Find the requested type and its dependencies.
-        /// </summary>
-        private IEnumerable<string> FindDeps(string typeName)
-        {
-            yield return typeName;
-
-            var registeredType = FindType(typeName);
-            if (registeredType != null)
-            {
-                // Merge in sub-dependencies.
-                foreach (var subDep in DetermineDeps(registeredType))
-                {
-                    yield return subDep;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Determine the dependency tree for a particular type.
-        /// </summary>
-        private IEnumerable<string> DetermineDeps(Type type)
-        {
-            return type    // Start with types of properties.
-                .GetProperties()
-                .Where(p => ReflectionUtils.PropertyHasAttribute<DependencyAttribute>(p))
-                .Select(p => GetTypeName(p.PropertyType))
-                // Merge in constructor parameter types.
-                .Concat(
-                    type
-                        .GetConstructors()
-                        .SelectMany(c => c.GetParameters())
-                        .Select(p => GetTypeName(p.ParameterType))
-                )
-                .Distinct()
-                .SelectMany(n => FindDeps(n));
-        }
-    }
 }
