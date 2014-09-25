@@ -60,6 +60,7 @@ namespace Utils
         /// </summary>
         Type FindType(string typeName);
 
+        /*fio:
         /// <summary>
         /// Returns true if the specified type can be instantiated by the factory
         /// </summary>
@@ -69,6 +70,7 @@ namespace Utils
         /// Returns true if the specified type can be instantiated by the factory
         /// </summary>
         bool HasType(string typeName);
+         * */
 
         /// <summary>
         /// Create a factory override, where the dependencies can be modified.
@@ -256,7 +258,7 @@ namespace Utils
                 foreach (var typeToCheck in FlattenInterfaces(dataType))
                 {
                     var viewName = viewTypeName + "_" + typeToCheck.Name;
-                    if (HasType(viewName))
+                    if (FindType(viewName) != null)
                     {
                         return InternalCreate<T>(viewName, args);
                     }
@@ -397,42 +399,34 @@ namespace Utils
 
                 return type;
             }
-            else if (fallbackFactory != null)
-            {
-                return fallbackFactory.FindType(typeName);
-            }
             else
             {
+                // Query providers to find dependency type.
+                var dependencyType = dependencyProviders
+                    .Select(provider => provider.FindDependencyType(typeName))
+                    .Where(dep => dep != null)
+                    .WhereMultiple((dependencies) =>
+                    {
+                        var msg =
+                            "Attempting to resolve a dependency via the dependency provider, but multiple dependencies have been found that match " + typeName + "\n" +
+                            "The following matches were found: \n" +
+                            dependencies.Select(dep => "\t" + dep.GetType().Name).Join("\n");
+
+                        throw new ApplicationException(msg);
+                    })
+                    .FirstOrDefault();
+
+                if (dependencyType != null)
+                {
+                    // Plugin dependency resolved at this level.
+                    return dependencyType;
+                }
+                else if (fallbackFactory != null)
+                {
+                    return fallbackFactory.FindType(typeName);
+                }
+
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the specified type can be instantiated by the factory
-        /// </summary>
-        public bool HasType<InterfaceT>()
-        {
-            return HasType(typeof(InterfaceT).Name);
-        }
-
-        /// <summary>
-        /// Returns true if the specified type can be instantiated by the factory
-        /// </summary>
-        public bool HasType(string typeName)
-        {
-            Argument.StringNotNullOrEmpty(() => typeName);
-
-            if (typeMap.ContainsKey(typeName))
-            {
-                return true;
-            }
-            else if (fallbackFactory != null)
-            {
-                return fallbackFactory.HasType(typeName);
-            }
-            else
-            {
-                return false;
             }
         }
 
@@ -724,7 +718,7 @@ namespace Utils
 
                 if (!IsDependencyRegistered(GetTypeName(type)))
                 {
-                    if (!HasType(GetTypeName(type)))
+                    if (FindType(GetTypeName(type)) == null)
                     {
                         return false; // Can't satisfy dependency from the dependency provider or the factory.
                     }                    
@@ -744,7 +738,7 @@ namespace Utils
                     .Where(parameter =>
                     {
                         var name = GetTypeName(parameter.ParameterType);
-                        return IsDependencyRegistered(name) || HasType(name);
+                        return IsDependencyRegistered(name) || FindType(name) != null;
                     })
                     .Select(parameter =>
                     {
@@ -1000,6 +994,5 @@ namespace Utils
 
             return null;
         }
-
-            }
+    }
 }

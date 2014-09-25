@@ -56,8 +56,6 @@ namespace Utils.Tests
 
                 Assert.Null(testObject.FindType("foo"));
                 Assert.Null(testObject.FindType<ITest>());
-                Assert.False(testObject.HasType("foo"));
-                Assert.False(testObject.HasType<ITest>());
             }
         }
 
@@ -84,7 +82,6 @@ namespace Utils.Tests
                 testObject.Type(typeName, type);
 
                 Assert.Equal(type, testObject.FindType(typeName));
-                Assert.True(testObject.HasType(typeName));
             }
         }
 
@@ -110,7 +107,6 @@ namespace Utils.Tests
                 testObject.Type<ITest>(type);
 
                 Assert.Equal(type, testObject.FindType<ITest>());
-                Assert.True(testObject.HasType<ITest>());
             }
         }
 
@@ -146,12 +142,38 @@ namespace Utils.Tests
                 mockFallback
                     .Setup(m => m.FindType(typeName))
                     .Returns(type);
-                mockFallback
-                    .Setup(m => m.HasType(typeName))
-                    .Returns(true);
 
                 Assert.Equal(type, testObject.FindType(typeName));
-                Assert.True(testObject.HasType(typeName));
+            }
+        }
+
+        public class can_find_type_from_dependency_plugin
+        {
+            public interface ITest
+            {
+
+            }
+
+            public class Test : ITest
+            {
+            }
+
+            [Fact]
+            public void test()
+            {
+                var mockProvider = new Mock<IDependencyProvider>();
+                var mockLogger = new Mock<ILogger>();
+                
+                var testObject = new Factory("test", mockLogger.Object);
+                testObject.AddDependencyProvider(mockProvider.Object);
+
+                var typeName = "foo";
+                var type = typeof(Test);
+                mockProvider
+                    .Setup(m => m.FindDependencyType(typeName))
+                    .Returns(type);
+
+                Assert.Equal(type, testObject.FindType(typeName));
             }
         }
 
