@@ -1,12 +1,13 @@
-﻿using System;
+﻿using RSG.RSG.FactoryUtils.Dbg;
+using RSG.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Utils.Dbg;
 
-namespace Utils
+namespace RSG.Factory
 {
     /// <summary>
     /// Inteface to an object factory.  Indirectly create objects.  Creation of objects is seperated from the code that uses those objects.

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Utils.Dbg
+namespace RSG.RSG.FactoryUtils.Dbg
 {
     public class Argument
     {

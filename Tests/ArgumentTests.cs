@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utils.Dbg;
 using Xunit;
 
-namespace Utils.Tests.Dbg
+namespace RSG.Utils.Tests.Dbg
 {
     /* These tests don't work in release build.
      * 

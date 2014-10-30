@@ -1,11 +1,12 @@
 ﻿using Moq;
+using RSG.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace Utils.Tests
+namespace RSG.Factory.Tests
 {
     public class FactoryTests
     {

@@ -1,12 +1,12 @@
 ﻿using Moq;
+using RSG.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utils;
 using Xunit;
 
-namespace Factory.Tests
+namespace RSG.Factory.Tests
 {
     public class SingletonScannerTests
     {

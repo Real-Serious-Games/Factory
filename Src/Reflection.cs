@@ -1,10 +1,10 @@
-﻿using System;
+﻿using RSG.RSG.FactoryUtils.Dbg;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utils.Dbg;
 
-namespace Utils
+namespace RSG.Utils
 {
     /// <summary>
     /// Provider of reflection services.

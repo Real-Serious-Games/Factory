@@ -1,11 +1,11 @@
-﻿using System;
+﻿using RSG.RSG.FactoryUtils.Dbg;
+using RSG.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Utils;
-using Utils.Dbg;
 
-namespace Utils
+namespace RSG.Factory
 {
     /// <summary>
     /// Helper class to scan dlls and find singleton types.

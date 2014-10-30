@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Utils
+namespace RSG.Factory
 {
     /// <summary>
     /// Used to mark properties for dependency injection.

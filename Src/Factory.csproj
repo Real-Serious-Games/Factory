@@ -7,8 +7,8 @@
     <ProjectGuid>{78787F14-DCF3-411E-81A9-A581A80A371A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Factory</RootNamespace>
-    <AssemblyName>Factory</AssemblyName>
+    <RootNamespace>RSG.Factory</RootNamespace>
+    <AssemblyName>RSG.Factory</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

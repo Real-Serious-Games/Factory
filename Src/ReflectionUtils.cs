@@ -1,12 +1,12 @@
-﻿using System;
+﻿using RSG.RSG.FactoryUtils.Dbg;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Utils.Dbg;
 
-namespace Utils
+namespace RSG.Utils
 {
     /// <summary>
     /// Misc helpers for working with C# reflection.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Utils
+namespace RSG.Factory
 {
     /// <summary>
     /// Attribute that marks a class as being creatable by the factory.

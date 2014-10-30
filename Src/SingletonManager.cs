@@ -1,12 +1,12 @@
-﻿using Core;
+﻿using RSG.RSG.FactoryUtils.Dbg;
+using RSG.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Utils.Dbg;
 
-namespace Utils
+namespace RSG.Factory
 {
     /// <summary>
     /// Defines a singleton.

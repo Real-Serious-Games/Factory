@@ -7,8 +7,8 @@
     <ProjectGuid>{766DBD81-CDA7-4B7F-A045-29A8A2D96029}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Factory.Tests</RootNamespace>
-    <AssemblyName>Factory.Tests</AssemblyName>
+    <RootNamespace>RSG.Factory.Tests</RootNamespace>
+    <AssemblyName>RSG.Factory.Tests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
