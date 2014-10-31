@@ -276,7 +276,7 @@ namespace RSG.Factory
                 var singletonDef = defsRemaining.Dequeue();
 
                 // Get the names of all types that this singleton is dependent on.
-                var singletonDependsOn = DetermineDeps(singletonDef.singletonType, factory).ToArray();
+                var singletonDependsOn = DetermineDeps(singletonDef.singletonType, factory, new string[0]).ToArray();
 
                 var allDepsSatisfied = singletonDependsOn                                                  
                     .Where(dependencyName => dependencyMap.ContainsKey(dependencyName)) // Only care about dependencies that are satisifed by other singletons.
@@ -315,15 +315,20 @@ namespace RSG.Factory
         /// <summary>
         /// Find the requested type and its dependencies.
         /// </summary>
-        private static IEnumerable<string> FindDeps(string typeName, IFactory factory)
+        private static IEnumerable<string> FindDeps(string typeName, IFactory factory, IEnumerable<string> typesConsidered)
         {
+            if (typesConsidered.Contains(typeName))
+        {
+                throw new ApplicationException("Already considered " + typeName + ", could be in a circular dependency.");
+            }
+
             yield return typeName;
 
             var registeredType = factory.FindType(typeName);
             if (registeredType != null)
             {
                 // Merge in sub-dependencies.
-                foreach (var subDep in DetermineDeps(registeredType, factory))
+                foreach (var subDep in DetermineDeps(registeredType, factory, typesConsidered.ConcatItems(typeName)))
                 {
                     yield return subDep;
                 }
@@ -333,7 +338,7 @@ namespace RSG.Factory
         /// <summary>
         /// Determine the dependency tree for a particular type.
         /// </summary>
-        private static IEnumerable<string> DetermineDeps(Type type, IFactory factory)
+        private static IEnumerable<string> DetermineDeps(Type type, IFactory factory, IEnumerable<string> typesConsidered)
         {
             return type    // Start with types of properties.
                 .GetProperties()
@@ -347,7 +352,7 @@ namespace RSG.Factory
                         .Select(p => Factory.GetTypeName(p.ParameterType))
                 )
                 .Distinct()
-                .SelectMany(n => FindDeps(n, factory));
+                .SelectMany(n => FindDeps(n, factory, typesConsidered));
         }
     }
 }
