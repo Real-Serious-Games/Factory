@@ -29,7 +29,7 @@ namespace RSG.Utils
         {
             Argument.NotNull(() => type);
 
-            return (AttributeT)MatchingAttributes(type.GetCustomAttributes(true), typeof(AttributeT)).FirstOrDefault();
+            return (AttributeT)MatchingAttributes(type.GetCustomAttributes(false), typeof(AttributeT)).FirstOrDefault();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace RSG.Utils
         {
             Argument.NotNull(() => type);
 
-            return MatchingAttributes(type.GetCustomAttributes(true), typeof(AttributeT)).Cast<AttributeT>();
+            return MatchingAttributes(type.GetCustomAttributes(false), typeof(AttributeT)).Cast<AttributeT>();
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace RSG.Utils
             Argument.NotNull(() => type);
             Argument.NotNull(() => attributeType);            
 
-            return MatchingAttributes(type.GetCustomAttributes(true), attributeType).Any();
+            return MatchingAttributes(type.GetCustomAttributes(false), attributeType).Any();
         }
 
 
@@ -276,7 +276,9 @@ namespace RSG.Utils
             {
                 try
                 {
-                    foreach (var foundAttribute in type.GetCustomAttributes(true)) //todo: merge with match attributes code
+                    //todo: ash: might be able to use this fn instead:
+                    // http://msdn.microsoft.com/en-us/library/dwc6ew1d(v=vs.110).aspx
+                    foreach (var foundAttribute in type.GetCustomAttributes(false)) //todo: merge with match attributes code
                     {
                         var hasMarkerAttribute = 
                                 markerAttributeTypes
