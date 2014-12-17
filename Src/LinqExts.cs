@@ -146,6 +146,14 @@ namespace RSG.Utils
         }
 
         /// <summary>
+        /// Join an enumerable of strings.
+        /// </summary>
+        public static string Join(this IEnumerable<string> strs)
+        {
+            return string.Join("", strs.ToArray());
+        }
+
+        /// <summary>
         /// Join an enumerable of strings by the specified separator.
         /// </summary>
         public static string Join(this IEnumerable<string> strs, string separator)

@@ -23,12 +23,17 @@ namespace RSG.Utils
         /// <summary>
         /// Log an error.
         /// </summary>
-        void LogError(string message, Exception ex);
+        void LogError(Exception ex, string message);
 
         /// <summary>
         /// Log an info message.
         /// </summary>
         void LogInfo(string message);
+
+        /// <summary>
+        /// Log an info message.
+        /// </summary>
+        void LogInfo(string message, params object[] args);
 
         /// <summary>
         /// Log a warning message.

@@ -1,5 +1,4 @@
-﻿using RSG.RSG.FactoryUtils.Dbg;
-using RSG.Utils;
+﻿using RSG.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -220,7 +219,7 @@ namespace RSG.Factory
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError("Exception thrown on startup of singleton: " + s.GetType().Name, ex);
+                    logger.LogError(ex, "Exception thrown on startup of singleton: " + s.GetType().Name);
                 }
             });
         }
@@ -239,7 +238,7 @@ namespace RSG.Factory
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError("Exception thrown on shutdown of singleton: " + s.GetType().Name, ex);
+                    logger.LogError(ex, "Exception thrown on shutdown of singleton: " + s.GetType().Name);
                 }
             });
         }
@@ -269,7 +268,8 @@ namespace RSG.Factory
             var defsRemaining = new Queue<SingletonDef>(singletonDefs);
             var dependenciesSatisfied = new HashSet<string>();
             var output = new List<SingletonDef>();
-            var defsAlreadySeen = new HashSet<SingletonDef>();
+            var defsAlreadySeen = new Dictionary<SingletonDef, int>();
+            var maxTypesSeen = 5;
 
             while (defsRemaining.Count > 0)
             {
@@ -280,7 +280,7 @@ namespace RSG.Factory
 
                 var allDepsSatisfied = singletonDependsOn                                                  
                     .Where(dependencyName => dependencyMap.ContainsKey(dependencyName)) // Only care about dependencies that are satisifed by other singletons.
-                    .All(n => dependenciesSatisfied.Contains(n));                       // Have we seen all other singletons yet that this singleton is dependent on?
+                    .All(dependencyName => dependenciesSatisfied.Contains(dependencyName));                       // Have we seen all other singletons yet that this singleton is dependent on?
 
                 if (allDepsSatisfied)
                 {
@@ -290,20 +290,32 @@ namespace RSG.Factory
                     logger.LogInfo("\t\tImplements: " + singletonDef.dependencyNames.Join(", "));
                     logger.LogInfo("\t\tDepends on:");
                     singletonDependsOn.Each(dependencyName => logger.LogInfo("\t\t\t" + dependencyName));
-
+                    logger.LogInfo("\t\tDepends on (singletons):");
+                    singletonDependsOn
+                        .Where(dependencyName => dependencyMap.ContainsKey(dependencyName))
+                        .Each(dependencyName => logger.LogInfo("\t\t\t" + dependencyName + (dependenciesSatisfied.Contains(dependencyName) ? " (satisfied)" : " (unsatisified)")));
 
                     singletonDef.dependencyNames.Each(dependencyName => dependenciesSatisfied.Add(dependencyName));
                 }
                 else
                 {
-                    if (defsAlreadySeen.Contains(singletonDef))
+                    int timesSeen;
+                    if (defsAlreadySeen.TryGetValue(singletonDef, out timesSeen))
                     {
-                        throw new ApplicationException("Already seen type: " + singletonDef.singletonType.Name + ", it is possible there is a circular dependency between types.");
-                    }
+                        if (timesSeen >= maxTypesSeen)
+                        {
+                            throw new ApplicationException("Already seen type: " + singletonDef.singletonType.Name + ", it is possible there is a circular dependency between types or it might be that a dependency can't be satisfied.");
+                        }
 
-                    // Record the types we have already attempted to process to make sure we are not 
-                    // iterating forever on a circular dependency.
-                    defsAlreadySeen.Add(singletonDef);
+                        // Increment the number of times we have seen this type.
+                        ++defsAlreadySeen[singletonDef];
+                    }
+                    else
+                    {
+                        // Record the types we have already attempted to process to make sure we are not 
+                        // iterating forever on a circular dependency.
+                        defsAlreadySeen[singletonDef] = 1;
+                    }
 
                     defsRemaining.Enqueue(singletonDef);
                 }
@@ -318,11 +330,11 @@ namespace RSG.Factory
         private static IEnumerable<string> FindDeps(string typeName, IFactory factory, IEnumerable<string> typesConsidered)
         {
             if (typesConsidered.Contains(typeName))
-        {
+            {
                 throw new ApplicationException("Already considered " + typeName + ", could be in a circular dependency.");
             }
 
-            yield return typeName;
+            yield return typeName;            
 
             var registeredType = factory.FindType(typeName);
             if (registeredType != null)
@@ -351,8 +363,8 @@ namespace RSG.Factory
                         .SelectMany(c => c.GetParameters())
                         .Select(p => Factory.GetTypeName(p.ParameterType))
                 )
-                .Distinct()
-                .SelectMany(n => FindDeps(n, factory, typesConsidered));
+                .SelectMany(n => FindDeps(n, factory, typesConsidered))
+                .Distinct();
         }
     }
 }

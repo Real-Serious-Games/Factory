@@ -316,7 +316,7 @@ namespace RSG.Factory.Tests
                 testObject.Start()
             );
 
-            mockLogger.Verify(m => m.LogError(It.IsAny<string>(), It.IsAny<ApplicationException>()), Times.Once());            
+            mockLogger.Verify(m => m.LogError(It.IsAny<ApplicationException>(), It.IsAny<string>()), Times.Once());
         }
 
         [Fact]
@@ -338,7 +338,7 @@ namespace RSG.Factory.Tests
                 testObject.Shutdown()
             );
 
-            mockLogger.Verify(m => m.LogError(It.IsAny<string>(), It.IsAny<ApplicationException>()), Times.Once());
+            mockLogger.Verify(m => m.LogError(It.IsAny<ApplicationException>(), It.IsAny<string>()), Times.Once());
         }
 
         private static SingletonDef InitDef(Type singletonType, params Type[] interfaceTypes)

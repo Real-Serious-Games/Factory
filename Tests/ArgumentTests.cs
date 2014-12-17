@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace RSG.Utils.Tests.Dbg
+namespace RSG.Utils.Tests
 {
     /* These tests don't work in release build.
      * 
