@@ -239,25 +239,17 @@ namespace RSG.Factory
             var viewTypeName = typeof(T).Name;
 
             logger.LogVerbose("[Factory: " + Name + "]: Resolving view " + viewTypeName + " for data " + dataType.Name);
-            logger.Indent();
 
-            try
+            foreach (var typeToCheck in FlattenInterfaces(dataType))
             {
-                foreach (var typeToCheck in FlattenInterfaces(dataType))
+                var viewName = viewTypeName + "_" + typeToCheck.Name;
+                if (FindType(viewName) != null)
                 {
-                    var viewName = viewTypeName + "_" + typeToCheck.Name;
-                    if (FindType(viewName) != null)
-                    {
-                        return InternalCreate<T>(viewName, args);
-                    }
+                    return InternalCreate<T>(viewName, args);
                 }
+            }
 
-                throw new ApplicationException("Failed to create type with interface " + viewTypeName + " based on data type " + dataType.Name);
-            }
-            finally
-            {
-                logger.Unindent();
-            }
+            throw new ApplicationException("Failed to create type with interface " + viewTypeName + " based on data type " + dataType.Name);
         }
 
         /// <summary>
@@ -266,13 +258,8 @@ namespace RSG.Factory
         public T Create<T>(string typeName, params object[] args)
         {
             logger.LogVerbose("[Factory: " + Name + "]: Creating " + typeName);
-            logger.Indent();
 
-            var obj = InternalCreate<T>(typeName, args);
-
-            logger.Unindent();
-
-            return obj;
+            return InternalCreate<T>(typeName, args);
         }
 
         /// <summary>
@@ -302,13 +289,8 @@ namespace RSG.Factory
             var interfaceName = GetTypeName(typeof(T));
 
             logger.LogVerbose("[Factory: " + Name + "]: Resolving interface " + interfaceName);
-            logger.Indent();
 
-            var obj = InternalCreate<T>(interfaceName, args);
-
-            logger.Unindent();
-
-            return obj;
+            return InternalCreate<T>(interfaceName, args);
         }
 
         /// <summary>
@@ -452,14 +434,11 @@ namespace RSG.Factory
                     if (remainingParameterTypes.Count() > 0)
                     {
                         logger.LogVerbose("Resolving constructor parameter dependencies:");
-                        logger.Indent();
 
                         var dependencyArgs =
                             remainingParameterTypes
                                 .Select(t => ResolveDep(t.Name, dependencyChain))
                                 .ToArray();
-
-                        logger.Unindent();
 
                         args = args.Concat(dependencyArgs).ToArray();
                     }
@@ -468,28 +447,12 @@ namespace RSG.Factory
                 T instance;
 
                 logger.LogVerbose("Invoking constructor: " + constructor);
-                logger.Indent();
 
-                try
-                {
-                    instance = (T)constructor.Invoke(args);
-                }
-                finally
-                {
-                    logger.Unindent();
-                }
+                instance = (T)constructor.Invoke(args);
 
                 logger.LogVerbose("Resolving properties:");
-                logger.Indent();
 
-                try
-                {
-                    ResolveDependencies(instance, dependencyChain);
-                }
-                finally
-                {
-                    logger.Unindent();
-                }
+                ResolveDependencies(instance, dependencyChain);
 
                 return instance;
             }
@@ -846,17 +809,10 @@ namespace RSG.Factory
                 {
                     var dependencyType = dependencyAttribute.DependencyType != null ? dependencyAttribute.DependencyType : property.PropertyType;
 
-                    logger.Indent();
-
                     logger.LogVerbose(property.Name + " => " + dependencyType.Name);
-
-                    logger.Indent();
 
                     // Create and assign the dependency.
                     ResolvePropertyDep(instance, property, dependencyType, dependencyChain);
-
-                    logger.Unindent();
-                    logger.Unindent();
                 }
             }
         }
@@ -906,47 +862,39 @@ namespace RSG.Factory
         public object ResolveDep(string dependencyName, Stack<Type> dependencyChain)
         {
             logger.LogVerbose("[Injector]: Resolving dependency " + dependencyName);
-            logger.Indent();
 
-            try
+            var dependency = RetreiveDependency(dependencyName);
+            if (dependency != null)
             {
-                var dependency = RetreiveDependency(dependencyName);
-                if (dependency != null)
-                {
-                    // Return cached dependency.
-                    //
-                    return dependency;
-                }
+                // Return cached dependency.
+                //
+                return dependency;
+            }
 
-                Type dependencyType;
-                if (typeMap.TryGetValue(dependencyName, out dependencyType))
+            Type dependencyType;
+            if (typeMap.TryGetValue(dependencyName, out dependencyType))
+            {
+                return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
+            }
+
+            // Query providers to provide the dependency.
+            var pluginDependency = ResolveDependency(dependencyName);
+            if (pluginDependency != null)
+            {
+                return pluginDependency;
+            }
+                
+            if (fallbackFactory != null)
+            {
+                dependencyType = fallbackFactory.FindType(dependencyName);
+                if (dependencyType != null)
                 {
                     return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
-                }
-
-                // Query providers to provide the dependency.
-                var pluginDependency = ResolveDependency(dependencyName);
-                if (pluginDependency != null)
-                {
-                    return pluginDependency;
-                }
-                
-                if (fallbackFactory != null)
-                {
-                    dependencyType = fallbackFactory.FindType(dependencyName);
-                    if (dependencyType != null)
-                    {
-                        return Instantiate<object>(dependencyType, emptyArray, dependencyChain);
-                    }                    
-                }
-
-
-                throw new ApplicationException("Failed to find or create dependency " + dependencyName);
+                }                    
             }
-            finally
-            {
-                logger.Unindent();
-            }
+
+
+            throw new ApplicationException("Failed to find or create dependency " + dependencyName);
         }
 
         /// <summary>

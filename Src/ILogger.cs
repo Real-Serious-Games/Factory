@@ -11,24 +11,14 @@ namespace RSG.Utils
     public interface ILogger
     {
         /// <summary>
-        /// Enables verbose logging.
+        /// Log an error.
         /// </summary>
-        bool EnableVerbose { get; set; }
+        void LogError(string message, params object[] args);
 
         /// <summary>
         /// Log an error.
         /// </summary>
-        void LogError(string message);
-
-        /// <summary>
-        /// Log an error.
-        /// </summary>
-        void LogError(Exception ex, string message);
-
-        /// <summary>
-        /// Log an info message.
-        /// </summary>
-        void LogInfo(string message);
+        void LogError(Exception ex, string message, params object[] args);
 
         /// <summary>
         /// Log an info message.
@@ -38,21 +28,11 @@ namespace RSG.Utils
         /// <summary>
         /// Log a warning message.
         /// </summary>
-        void LogWarning(string message);
+        void LogWarning(string message, params object[] args);
 
         /// <summary>
         /// Log a verbose message, by default these aren't output.
         /// </summary>
-        void LogVerbose(string message);
-
-        /// <summary>
-        /// Indent verbose log messages.
-        /// </summary>
-        void Indent();
-
-        /// <summary>
-        /// Unindent verbose log messages.
-        /// </summary>
-        void Unindent();
+        void LogVerbose(string message, params object[] args);
     }
 }
