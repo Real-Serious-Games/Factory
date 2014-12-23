@@ -942,6 +942,16 @@ namespace RSG.Factory
         }
 
         /// <summary>
+        /// Automatically register types and dependencies with the factory.
+        /// </summary>
+        public void AutoRegisterTypes(IReflection reflection)
+        {
+            Argument.NotNull(() => reflection);
+
+            AutoRegisterTypes(reflection, this);
+        }
+
+        /// <summary>
         /// Helper function to search for and auto-register factory types.
         /// Mockable interfaces are passed in for testing.
         /// </summary>
