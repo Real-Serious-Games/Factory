@@ -9,5 +9,5 @@ install:
   - export EnableNuGetPackageRestore=true  
  
 script:
-  - xbuild Factory.build
-  - ./xunit/xunit.console.clr4.x86.exe ./bin/debug/RSG.Factory.Tests.dll
+  - xbuild ./Factory.sln
+  - mono ./xunit/xunit.console.clr4.x86.exe ./bin/debug/RSG.Factory.Tests.dll
