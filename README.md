@@ -1,4 +1,4 @@
-Factory [![Build Status](https://travis-ci.org/real-serious-games/factory.svg)](https://travis-ci.org/real-serious-games/factory)
+Factory [![Build Status](https://travis-ci.org/Real-Serious-Games/Factory.svg)](https://travis-ci.org/Real-Serious-Games/Factory)
 =======
 
 
