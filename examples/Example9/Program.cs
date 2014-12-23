@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 
 //
-// This example shows how to inject property dependencies into a factory created object.
+// This example shows how to mark dependencies with the FactoryCreatable attribute so they are automatically resolved when they need to be injected.
 // 
 namespace Example
 {
