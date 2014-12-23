@@ -6,12 +6,17 @@ using System.Linq;
 using System.Text;
 
 //
-// This example shows how to auto register a named type using the FactoryCreatable attribute.
+// This example shows how to auto register a type created by interface using the FactoryCreatable attribute.
 // 
 namespace Example
 {
-    [FactoryCreatable] // This attribute identifies the type as factory createable.
-    public class MyType
+    public interface IMyType
+    {
+        string Message { get; }
+    }
+
+    [FactoryCreatable(typeof(IMyType))] // This attribute identifies the type as factory createable.
+    public class MyType : IMyType
     {
         public string Message
         {
@@ -32,7 +37,7 @@ namespace Example
             factory.AutoRegisterTypes();
 
             // Create an instance.
-            var myFactoryCreatedObject = factory.Create<MyType>("MyType");
+            var myFactoryCreatedObject = factory.CreateInterface<IMyType>();
 
             Console.WriteLine(myFactoryCreatedObject.Message);
         }
