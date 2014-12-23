@@ -2,7 +2,7 @@ language: c
  
 install:
   - sudo apt-get install mono-devel mono-gmcs
-  - chmod +x lib/xunit/xunit.console.clr4.x86.exe
+  - chmod +x ./xunit/xunit.console.clr4.x86.exe
  
 script:
   - xbuild Factory.build
