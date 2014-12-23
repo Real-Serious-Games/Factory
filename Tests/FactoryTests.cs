@@ -1939,6 +1939,92 @@ namespace RSG.Factory.Tests
                     );
                 }
             }
+
+            [Fact]
+            public void no_factory_creatables_found_results_in_no_types_registered()
+            {
+                var mockReflection = new Mock<IReflection>();
+                var mockFactory = new Mock<IFactory>();
+
+                Factory.AutoRegisterTypes(mockReflection.Object, mockFactory.Object);
+
+                mockFactory.Verify(m => m.Type(It.IsAny<string>(), It.IsAny<Type>()), Times.Never());
+            }
+
+            [Fact]
+            public void factory_creatable_discovered_is_registered()
+            {
+                var mockReflection = new Mock<IReflection>();
+                var mockFactory = new Mock<IFactory>();
+
+                var typeName = "blah";
+                var mockType = typeof(int);
+
+                mockReflection
+                    .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(FactoryCreatableAttribute) }))
+                    .Returns(new Type[] { mockType });
+
+                mockReflection
+                    .Setup(m => m.GetAttributes<FactoryCreatableAttribute>(mockType))
+                    .Returns(new FactoryCreatableAttribute[] { new FactoryCreatableAttribute(typeName) });
+
+                Factory.AutoRegisterTypes(mockReflection.Object, mockFactory.Object);
+
+                mockFactory.Verify(m => m.Type(typeName, mockType), Times.Once());
+            }
+
+            [Fact]
+            public void can_register_type_with_multiple_names()
+            {
+                var mockReflection = new Mock<IReflection>();
+                var mockFactory = new Mock<IFactory>();
+
+                var typeName1 = "blah1";
+                var typeName2 = "blah2";
+                var mockType = typeof(int);
+
+                mockReflection
+                    .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(FactoryCreatableAttribute) }))
+                    .Returns(new Type[] { mockType });
+
+                mockReflection
+                    .Setup(m => m.GetAttributes<FactoryCreatableAttribute>(mockType))
+                    .Returns(new FactoryCreatableAttribute[] { new FactoryCreatableAttribute(typeName1), new FactoryCreatableAttribute(typeName2) });
+
+                Factory.AutoRegisterTypes(mockReflection.Object, mockFactory.Object);
+
+                mockFactory.Verify(m => m.Type(typeName1, mockType), Times.Once());
+                mockFactory.Verify(m => m.Type(typeName2, mockType), Times.Once());
+            }
+
+            [Fact]
+            public void can_register_multiple_types()
+            {
+                var mockReflection = new Mock<IReflection>();
+                var mockFactory = new Mock<IFactory>();
+
+                var typeName1 = "blah1";
+                var typeName2 = "blah2";
+                var mockType1 = typeof(int);
+                var mockType2 = typeof(string);
+
+                mockReflection
+                    .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(FactoryCreatableAttribute) }))
+                    .Returns(new Type[] { mockType1, mockType2 });
+
+                mockReflection
+                    .Setup(m => m.GetAttributes<FactoryCreatableAttribute>(mockType1))
+                    .Returns(new FactoryCreatableAttribute[] { new FactoryCreatableAttribute(typeName1) });
+
+                mockReflection
+                    .Setup(m => m.GetAttributes<FactoryCreatableAttribute>(mockType2))
+                    .Returns(new FactoryCreatableAttribute[] { new FactoryCreatableAttribute(typeName2) });
+
+                Factory.AutoRegisterTypes(mockReflection.Object, mockFactory.Object);
+
+                mockFactory.Verify(m => m.Type(typeName1, mockType1), Times.Once());
+                mockFactory.Verify(m => m.Type(typeName2, mockType2), Times.Once());
+            }
         }
    }
 }

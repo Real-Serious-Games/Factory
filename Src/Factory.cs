@@ -938,6 +938,17 @@ namespace RSG.Factory
         public void AutoRegisterTypes()
         {
             var reflection = new Reflection();
+            AutoRegisterTypes(reflection, this);
+        }
+
+        /// <summary>
+        /// Helper function to search for and auto-register factory types.
+        /// Mockable interfaces are passed in for testing.
+        /// </summary>
+        public static void AutoRegisterTypes(IReflection reflection, IFactory factory)
+        {
+            Argument.NotNull(() => reflection);
+            Argument.NotNull(() => factory);
 
             // Add factory creatable definitions
             var factoryCreatableTypes = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(FactoryCreatableAttribute) });
@@ -952,7 +963,7 @@ namespace RSG.Factory
                         name = factoryCreatableType.Name;
                     }
 
-                    Type(name, factoryCreatableType);
+                    factory.Type(name, factoryCreatableType);
                 }
             }
         }
