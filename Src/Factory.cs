@@ -931,5 +931,30 @@ namespace RSG.Factory
 
             return null;
         }
+
+        /// <summary>
+        /// Automatically register types and dependencies with the factory.
+        /// </summary>
+        public void AutoRegisterTypes()
+        {
+            var reflection = new Reflection();
+
+            // Add factory creatable definitions
+            var factoryCreatableTypes = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(FactoryCreatableAttribute) });
+            foreach (var factoryCreatableType in factoryCreatableTypes)
+            {
+                var attributes = reflection.GetAttributes<FactoryCreatableAttribute>(factoryCreatableType);
+                foreach (var attribute in attributes)
+                {
+                    var name = attribute.TypeName;
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        name = factoryCreatableType.Name;
+                    }
+
+                    Type(name, factoryCreatableType);
+                }
+            }
+        }
     }
 }
