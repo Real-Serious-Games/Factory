@@ -22,13 +22,13 @@ Alternately if you want to contribute you fork the project in github.
 Factory Setup 
 -------------
 
-After referencing the DLL and ''using'' the namespace, the factory is instantiated as follows:
+After referencing the DLL and *using* the namespace, the factory is instantiated as follows:
 	
 	Factory factory = new Factory("MyApp", new MyLogger());
 
-The first parameter specifies a name of the factory instance and is for debugging only. Naming factorys will help if you use multiple factories.
+The first parameter specifies a name of the factory instance and is for debugging only. Naming factorys helps when using multiple factories.
 
-The second parameter is an instance of an object that implements the ILogger interface. The class that implements ILogger is defined by the you, for an example of 
+The second parameter is an instance of an object that implements `ILogger`. This implementing class is defined by the you, for an example of 
 the simplest possible implementation see the included example projects.
 
 Factory Creation by Name
@@ -50,16 +50,14 @@ Now you can create instance of the type by specifying the type name:
 
     MyType myFactoryCreatedObject = factory.Create<MyType>("MyType");
 
-
 This technique is useful for data-driven programming (http://stackoverflow.com/questions/1065584/what-is-data-driven-programming).
-
 
 Factory Creation by Interface
 -----------------------------
 
 Objects can also be created by specifying their interface.
 
-This time, the type we are going to create must have an interface:
+This time, the type has an interface:
 
 	public interface IMyType
     {
@@ -79,13 +77,12 @@ And create instances by specifying the interface:
     IMyType myFactoryCreatedObject = factory.CreateInterface<IMyType>();
 
 This technique is useful for test-driven development (http://en.wikipedia.org/wiki/Test-driven_development) 
-when you want to mock (http://en.wikipedia.org/wiki/Mock_object) the interfaces of the objects being created.
-
+for mocking (http://en.wikipedia.org/wiki/Mock_object) the interface of the object being created.
 
 Constructor Arguments
 ---------------------
 
-Any number of constructor arguments can be specified when creating objects, provided there is actually is a constructor that takes the arguments.
+Any number of constructor arguments can be specified when creating objects, provided there actually is a constructor that takes the arguments.
 
 By name:
 
@@ -95,7 +92,7 @@ Or by interface:
 
 	IMyType myFactoryCreatedObject = factory.CreateInterface<IMyType>(1, 2, "3");
 
-This assumes that MyType has a public constructor with appropriate parameters, like:
+This assumes that MyType has a public constructor with appropriate parameters, such as:
 
 	public MyType(int a1, int a2, string a3)
 	{
@@ -104,8 +101,8 @@ This assumes that MyType has a public constructor with appropriate parameters, l
 
 If no such constructor exists an exception will be thrown at run-time when attempting to create the object.
 
-This is a downside of using the factory, you don't get have compile-time checking of constructor arguments the way you would if you were just 'newing' 
-objects directly, however I believe that being able to use TDD outweights this issue. If you ever come up with a good solution to this problem please 
+This highlights the downside of using the factory, you don't get have compile-time checking of constructor arguments the way you would if you were just *newing* 
+objects directly, however I believe that being able to use TDD outweights this issue. If you ever come up with a good solution to this problem **please** 
 let us know!
 
 Automatic Setup for Factory Creation
@@ -113,30 +110,30 @@ Automatic Setup for Factory Creation
 
 Registering types manually is boring work. Here's how to do it automatically.
 
-By name...
+Use the 'FactoryCreatable' attribute to mark your types.
 
-Use the 'FactoryCreatable' attribute to mark your type:
+By name:
+
 
 	[FactoryCreatable]
 	public class MyType
     {
     }
 
-Or if you using an interface: 
+Or by interface:
 
 	[FactoryCreatable(typeof(IMyType))]
     public class MyType : IMyType
     {
     }
 
-Scan loaded DLLs for marked types:
+Then ask the factory to scan loaded DLLs for marked types:
 
 	factory.AutoRegisterTypes();
 
+Be careful, this can be **expensive**! Ideally you will only do this only once at startup.
 
-Be careful, this can be expensive! Ideally you will only do this once at startup.
-
-Then create objects by name or interface as necessary.
+You can now create the automatically registered objects by name or interface as necessary.
 
 Dependency Injection via Properties
 -----------------------------------
@@ -150,21 +147,20 @@ Dependencies can be injected (http://en.wikipedia.org/wiki/Dependency_injection)
 		public IMyDependency MyDependency { get; set; }
     }
 
-The 'Dependency' attribute marks the properties to be resolved. After the object has been factory created the dependencies will be satisfied.
+The `Dependency` attribute marks properties to be resolved. After the object has been factory-created the dependencies will be satisfied.
 
 Properties must have a 'setter'.
 
-Property dependencies are very convenient (although it's a trade off against slightly bad design with the public setters) by they can't be used in constructors. 
-That is because property dependencies, by necessity, are resolved after the object is constructed. If you want to use use dependencies in the constructor, 
-they must be injected as constructor arguments.
-
+Property dependencies are very convenient (although it's a trade-off against the bad design of using public *setters*), but the properties can't be used in constructors. 
+This is because property dependencies, by necessity, are resolved after the object is constructed, therefore after the constructor has executed. 
+To use use injected dependencies in a constructor, they must be injected as constructor arguments.
 
 Dependency Injection via Constructor Arguments
 ----------------------------------------------
 
-Constructor argument injection is cleaner than property injection (as it eliminates public setters) but it is less convenient.
+Constructor argument injection is cleaner than property injection (as it eliminates public *setters*), but it is less convenient.
 
-It is necessary when you need to access dependencies with in the constructor.
+This is necessary when you need to use dependencies in a constructor.
 
 An example:
 
@@ -190,10 +186,13 @@ Dependency injected constructor arguments can be used with normal constuctor arg
 
 Any number of injected arguments can come after any number of normal arguments.
 
+Remember that when you factory-create an object that takes injected constructor arguments that you shouldn't manually provide those arguments. You could do that if you wanted to, and maybe that's
+warranted in some scenarios, but generally don't do it because it defeats the point of having automatic injection.
+
 Manual Setup for Dependency Injection
 -------------------------------------
 
-Dependencies must be register before they can be injected.
+Dependencies must be register with the factory before they can be injected.
 
 This can be done manually as follows:
 
@@ -202,13 +201,12 @@ This can be done manually as follows:
 This registers an instance of `MyDependency` and associates it with the interface `IMyDependency`. Whenever `IMyDependency` is requested
 as a dependency it will resolve to the specified `MyDependency` object.
 
-
 Automatic Setup for Depency Injection
 -------------------------------------
 
-Again... manual setup is boring and time consuming. Have some automatic setup.
+Again... manual setup is boring and time consuming. Enjoy some automatic setup...
 
-Any class that has been marked with the interface version of `FactoryCreatable` will also be dependency-injectable:
+Any class that has been marked with `FactoryCreatable` (the interface version) will also be dependency-injectable:
 
 	[FactoryCreatable(typeof(IMyDependency))]
 	public class MyDependency : IMyDependency
