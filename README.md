@@ -1,28 +1,28 @@
 Factory [![Build Status](https://travis-ci.org/Real-Serious-Games/Factory.svg)](https://travis-ci.org/Real-Serious-Games/Factory)
 =======
 
-Factory for object creation and dependency injection.
+Easy to use C# factory/IOC-container for object creation and dependency injection.
 
 Getting the DLL
 ---------------
 
 The DLL can be installed via nuget. Use the Package Manager UI or console in Visual Studio or use nuget from the command line.
 
-See here for instructions on using nuget: http://docs.nuget.org/docs/start-here/using-the-package-manager-console
+See here for instructions on installing a package via nuget: http://docs.nuget.org/docs/start-here/using-the-package-manager-console
 
 Getting the Code
 ----------------
 
-You can get the code by cloning the github repository. You can do this in a UI like source tree or you can do it from the command line as follows:
+You can get the code by cloning the github repository. You can do this in a UI like SourceTree or you can do it from the command line as follows:
 
 	git clone https://github.com/Real-Serious-Games/Factory.git
 
-Alternately if you want to contribute you should use github to fork your own copy of the project.
+Alternately if you want to contribute you fork the project in github.
 
 Factory Setup 
 -------------
 
-After referencing the DLL and 'using' the namespace, the factory is instantiated as follows:
+After referencing the DLL and ''using'' the namespace, the factory is instantiated as follows:
 	
 	Factory factory = new Factory("MyApp", new MyLogger());
 
