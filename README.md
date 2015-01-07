@@ -10,6 +10,8 @@ The DLL can be installed via nuget. Use the Package Manager UI or console in Vis
 
 See here for instructions on installing a package via nuget: http://docs.nuget.org/docs/start-here/using-the-package-manager-console
 
+The package to search for is *RSG.Factory*.
+
 Getting the Code
 ----------------
 
