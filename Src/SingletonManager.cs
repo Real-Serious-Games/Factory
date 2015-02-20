@@ -27,6 +27,11 @@ namespace RSG.Factory
         /// </summary>
         public bool lazy;
 
+        /// <summary>
+        /// Custom instantiation.
+        /// </summary>
+        public Func<IFactory, Type, object> Instantiate;
+
         public override string ToString()
         {
             return singletonType.Name + " (" + (lazy ? "lazy" : "normal") + ") [" + dependencyNames.Join(",") + "]";
@@ -196,10 +201,10 @@ namespace RSG.Factory
         private object InstantiateSingleton(SingletonDef singletonDef, IFactory factory)
         {
             var type = singletonDef.singletonType;
-            logger.LogInfo("Creating singleton: " + type.Name);
+            logger.LogInfo("Instantiating singleton: " + type.Name);
 
             // Instantiate the singleton.
-            var singleton = factory.Create(type);
+            var singleton = singletonDef.Instantiate != null ? singletonDef.Instantiate(factory, type) : factory.Create(type);
             singletonDef.dependencyNames.Each(dependencyName => dependencyCache.Add(dependencyName, singleton));
 
             return singleton;

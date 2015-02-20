@@ -61,6 +61,25 @@ namespace RSG.Factory.Tests
             Assert.Equal(singleton, testObject.Singletons[0]);
         }
 
+        [Fact]
+        public void can_instantiate_singleton_with_custom_method()
+        {
+            Init();
+
+            var singleton = new object();
+            testObject.RegisterSingleton(new SingletonDef()
+            {
+                singletonType = typeof(object),
+                dependencyNames = new string[0],
+                Instantiate = (f, t) => singleton
+            });
+
+            testObject.InstantiateSingletons(mockFactory.Object);
+
+            Assert.Equal(1, testObject.Singletons.Length);
+            Assert.Equal(singleton, testObject.Singletons[0]);
+        }
+
         public class can_instantiate_dependent_singletons
         {
             public interface ITest1

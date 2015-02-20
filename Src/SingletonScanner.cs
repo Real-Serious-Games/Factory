@@ -56,7 +56,8 @@ namespace RSG.Factory
                             .Where(attribute => attribute.DependencyName != null)
                             .Select(attribute => attribute.DependencyName)
                             .ToArray(),
-                        lazy = attrs.Any(atribute => atribute.Lazy)
+                        lazy = attrs.Any(atribute => atribute.Lazy),
+                        Instantiate = (factory, t) => attrs.First().CreateInstance(factory, t)
                     };
                 })
                 .ToArray();

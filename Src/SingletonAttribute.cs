@@ -30,6 +30,14 @@ namespace RSG.Factory
             this.DependencyName = dependencyName;
         }
 
+        /// <summary>
+        /// Create the singleton instance. Override to to provide custom creation logic.
+        /// </summary>
+        public virtual object CreateInstance(IFactory factory, Type type)
+        {
+            return factory.Create(type);
+        }
+
         public override string ToString()
         {
             if (DependencyName != null)

@@ -19,7 +19,7 @@ You can get the code by cloning the github repository. You can do this in a UI l
 
 	git clone https://github.com/Real-Serious-Games/Factory.git
 
-Alternately if you want to contribute you fork the project in github.
+Alternately, to contribute please fork the project in github.
 
 Factory Setup 
 -------------
