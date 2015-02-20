@@ -80,6 +80,31 @@ namespace RSG.Factory.Tests
             Assert.Equal(singleton, testObject.Singletons[0]);
         }
 
+        [Fact]
+        public void exception_thrown_by_custom_instantiator_is_handled()
+        {
+            Init();
+
+            var ex = new ApplicationException("!!!");
+
+            var singleton = new object();
+            testObject.RegisterSingleton(new SingletonDef()
+            {
+                singletonType = typeof(object),
+                dependencyNames = new string[0],
+                Instantiate = (f, t) => 
+                {
+                    throw ex;
+                }
+            });
+
+            testObject.InstantiateSingletons(mockFactory.Object);
+
+            mockLogger.Verify(m => m.LogError(ex, It.IsAny<string>(), It.IsAny<object[]>()), Times.Once());
+
+            Assert.Equal(0, testObject.Singletons.Length);
+        }
+
         public class can_instantiate_dependent_singletons
         {
             public interface ITest1

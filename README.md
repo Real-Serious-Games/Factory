@@ -3,6 +3,8 @@ Factory [![Build Status](https://travis-ci.org/Real-Serious-Games/Factory.svg)](
 
 Easy to use C# factory/IOC-container for object creation and dependency injection.
 
+Used by Real Serious Games in serious games build with [Unity3d](http://unity3d.com/). 
+
 Getting the DLL
 ---------------
 

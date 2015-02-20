@@ -192,6 +192,7 @@ namespace RSG.Factory
 
             Singletons = sortedByDependency
                 .Select(singletonDef => InstantiateSingleton(singletonDef, factory))
+                .Where(singleton => singleton != null)
                 .ToArray();
         }
 
@@ -203,11 +204,19 @@ namespace RSG.Factory
             var type = singletonDef.singletonType;
             logger.LogInfo("Instantiating singleton: " + type.Name);
 
-            // Instantiate the singleton.
-            var singleton = singletonDef.Instantiate != null ? singletonDef.Instantiate(factory, type) : factory.Create(type);
-            singletonDef.dependencyNames.Each(dependencyName => dependencyCache.Add(dependencyName, singleton));
+            try
+            {
+                // Instantiate the singleton.
+                var singleton = singletonDef.Instantiate != null ? singletonDef.Instantiate(factory, type) : factory.Create(type);
+                singletonDef.dependencyNames.Each(dependencyName => dependencyCache.Add(dependencyName, singleton));
 
-            return singleton;
+                return singleton;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to instantiate singleton {SingletonTypeName}", type.Name);
+                return null;
+            }
         }
 
         /// <summary>
