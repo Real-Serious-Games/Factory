@@ -9,7 +9,7 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
 
 - 27 Feb 2015: v1.0.0.7
   - Singleton setup is now simplified and easier to user. See this docs or included examples for details.
-  - IStartable *Start* has been renamed to *StartUp* to avoid conflicts with the MonoBehaviour *Start* function for Unity scripts. 
+  - IStartable *Start* has been renamed to *Startup* to avoid conflicts with the MonoBehaviour *Start* function for Unity scripts. 
 
 ## Getting the DLL
 

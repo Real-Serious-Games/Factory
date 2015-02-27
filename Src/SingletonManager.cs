@@ -229,7 +229,7 @@ namespace RSG.Factory
 
                 try
                 {
-                    s.Start();
+                    s.Startup();
                 }
                 catch (Exception ex)
                 {

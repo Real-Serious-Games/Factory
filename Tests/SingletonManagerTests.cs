@@ -323,7 +323,7 @@ namespace RSG.Factory.Tests
 
             testObject.Start();
 
-            mockStartableSingleton.Verify(m => m.Start(), Times.Once());
+            mockStartableSingleton.Verify(m => m.Startup(), Times.Once());
         }
 
         [Fact]
@@ -353,7 +353,7 @@ namespace RSG.Factory.Tests
             testObject.InstantiateSingletons(mockFactory.Object);
 
             mockStartableSingleton
-                .Setup(m => m.Start())
+                .Setup(m => m.Startup())
                 .Throws<ApplicationException>();
 
             Assert.DoesNotThrow(() => 

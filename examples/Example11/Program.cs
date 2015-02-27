@@ -27,7 +27,7 @@ namespace Example
             }
         }
 
-        public void Start() // Called when the singleton is started.
+        public void Startup() // Called when the singleton is started.
         {
             Console.WriteLine("My singleton has started!");
         }

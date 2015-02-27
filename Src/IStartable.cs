@@ -13,7 +13,7 @@ namespace RSG.Factory
         /// <summary>
         /// Start the object.
         /// </summary>
-        void Start();
+        void Startup();
 
         /// <summary>
         /// Shutdown the object.
