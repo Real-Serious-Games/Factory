@@ -62,7 +62,7 @@ namespace RSG.Factory
         /// <summary>
         /// Start singletons that are startable.
         /// </summary>
-        void Start();
+        void Startup();
 
         /// <summary>
         /// Shutdown started singletons.
@@ -222,7 +222,7 @@ namespace RSG.Factory
         /// <summary>
         /// Start singletons that are startable.
         /// </summary>
-        public void Start()
+        public void Startup()
         {
             Singletons.ForType((IStartable s) => {
                 logger.LogInfo("Starting singleton: " + s.GetType().Name);

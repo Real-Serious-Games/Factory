@@ -72,7 +72,7 @@ namespace Example
             var singletonManager = factory.AutoInstantiateSingletons();
 
             // Start-up startable singletons.
-            singletonManager.Start();
+            singletonManager.Startup();
 
             // Create an instance.
             var myFactoryCreatedObject = factory.CreateInterface<IMyType>();
