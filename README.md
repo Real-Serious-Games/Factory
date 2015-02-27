@@ -54,7 +54,7 @@ Now you can create instance of the type by specifying the type name:
 
     MyType myFactoryCreatedObject = factory.Create<MyType>("MyType");
 
-This technique is useful for data-driven programming (http://stackoverflow.com/questions/1065584/what-is-data-driven-programming).
+This technique is useful in [data-driven programming](http://stackoverflow.com/questions/1065584/what-is-data-driven-programming).
 
 ## Factory Creation by Interface
 
@@ -79,8 +79,8 @@ And create instances by specifying the interface:
 
     IMyType myFactoryCreatedObject = factory.CreateInterface<IMyType>();
 
-This technique is useful for test-driven development (http://en.wikipedia.org/wiki/Test-driven_development) 
-for mocking (http://en.wikipedia.org/wiki/Mock_object) the interface of the object being created.
+This technique is useful in [test-driven development](http://en.wikipedia.org/wiki/Test-driven_development)  
+for [mocking](http://en.wikipedia.org/wiki/Mock_object) the interface of the object being created.
 
 ## Constructor Arguments
 
