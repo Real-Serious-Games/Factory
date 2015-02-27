@@ -59,17 +59,11 @@ namespace Example
             // Auto register types.
             factory.AutoRegisterTypes();
 
-            var reflection = new Reflection();
-            var singletonManager = new SingletonManager(reflection, logger, factory);
-            var singletonScanner = new SingletonScanner(reflection, logger, singletonManager);
-
-            // Connect the singleton manager to the factory so that it can be used to satisify dependencies.
-            factory.AddDependencyProvider(singletonManager);
-
-            // Auto register singletons whose types are marked with the Singleton attribute.
-            singletonScanner.ScanSingletonTypes();
+            // Normal singleton bootstrapping... although the lazy singleton isn't instantiated yet.
+            factory.AutoInstantiateSingletons();
 
             // Create an instance.
+            // This will instantiate the lazy singleton at the point when it is requested by the dependency injection system.
             var myFactoryCreatedObject = factory.CreateInterface<IMyType>();
 
             Console.WriteLine(myFactoryCreatedObject.Message);

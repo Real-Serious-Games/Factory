@@ -175,6 +175,11 @@ namespace RSG.Factory
         private ILogger logger;
 
         /// <summary>
+        /// Provides reflection services to the factory.
+        /// </summary>
+        private IReflection reflection;
+
+        /// <summary>
         /// Dictionary that contains pre-instantiated dependencies.
         /// </summary>
         private Dictionary<string, object> dependencies = new Dictionary<string, object>();
@@ -200,6 +205,20 @@ namespace RSG.Factory
 
             this.Name = name;
             this.logger = logger;
+            this.reflection = new Reflection();
+
+            this.Dep<IFactory>(this);
+        }
+
+        public Factory(string name, ILogger logger, IReflection reflection)
+        {
+            Argument.StringNotNullOrEmpty(() => name);
+            Argument.NotNull(() => logger);
+            Argument.NotNull(() => reflection);
+
+            this.Name = name;
+            this.logger = logger;
+            this.reflection = reflection;
 
             this.Dep<IFactory>(this);
         }
@@ -209,10 +228,26 @@ namespace RSG.Factory
             Argument.StringNotNullOrEmpty(() => name);
             Argument.NotNull(() => fallbackFactory);
             Argument.NotNull(() => logger);
+
+            this.Name = name;
+            this.fallbackFactory = fallbackFactory;
+            this.logger = logger;
+            this.reflection = new Reflection();
+
+            this.Dep<IFactory>(this);
+        }
+
+        public Factory(string name, IFactory fallbackFactory, ILogger logger, IReflection reflection)
+        {
+            Argument.StringNotNullOrEmpty(() => name);
+            Argument.NotNull(() => fallbackFactory);
+            Argument.NotNull(() => logger);
+            Argument.NotNull(() => reflection);
                         
             this.Name = name;
             this.fallbackFactory = fallbackFactory;
             this.logger = logger;
+            this.reflection = reflection;
 
             this.Dep<IFactory>(this);
         }
@@ -480,7 +515,7 @@ namespace RSG.Factory
                 throw new ArgumentException("Invalid factory name.", "name");
             }
 
-            return new Factory(name, this, logger);
+            return new Factory(name, this, logger, reflection);
         }
 
         /// <summary>
@@ -937,15 +972,6 @@ namespace RSG.Factory
         /// </summary>
         public void AutoRegisterTypes()
         {
-            var reflection = new Reflection();
-            AutoRegisterTypes(reflection, this);
-        }
-
-        /// <summary>
-        /// Automatically register types and dependencies with the factory.
-        /// </summary>
-        public void AutoRegisterTypes(IReflection reflection)
-        {
             Argument.NotNull(() => reflection);
 
             AutoRegisterTypes(reflection, this);
@@ -976,6 +1002,27 @@ namespace RSG.Factory
                     factory.Type(name, factoryCreatableType);
                 }
             }
+        }
+
+        /// <summary>
+        /// Automatically find and instantiate singletons, classes that are marked with the [Singleton] attribute, or an attribute
+        /// that derives from SingletonAttribute.
+        /// </summary>
+        public ISingletonManager AutoInstantiateSingletons()
+        {
+            var singletonManager = new SingletonManager(reflection, logger, this);
+            var singletonScanner = new SingletonScanner(reflection, logger, singletonManager);
+
+            // Connect the singleton manager to the factory so that it can be used to satisify dependencies.
+            AddDependencyProvider(singletonManager);
+
+            // Auto register singletons whose types are marked with the Singleton attribute.
+            singletonScanner.ScanSingletonTypes();
+
+            // Instantiate singletons.
+            singletonManager.InstantiateSingletons(this);
+
+            return singletonManager;
         }
     }
 }

@@ -68,18 +68,8 @@ namespace Example
             // Auto register types.
             factory.AutoRegisterTypes();
 
-            var reflection = new Reflection();
-            var singletonManager = new SingletonManager(reflection, logger, factory);
-            var singletonScanner = new SingletonScanner(reflection, logger, singletonManager);
-
-            // Connect the singleton manager to the factory so that it can be used to satisify dependencies.
-            factory.AddDependencyProvider(singletonManager);
-
-            // Auto register singletons whose types are marked with the Singleton attribute.
-            singletonScanner.ScanSingletonTypes();
-
-            // Instantiate singletons.
-            singletonManager.InstantiateSingletons(factory);
+            // Auto bootstrap singletons for classes marked as [Singleton].
+            var singletonManager = factory.AutoInstantiateSingletons();
 
             // Start-up startable singletons.
             singletonManager.Start();

@@ -54,23 +54,13 @@ namespace Example
         static void Main(string[] args)
         {
             var logger = new MyLogger();
-            var factory = new Factory("MyApp", logger);
+            var factory = new Factory("MyApp", logger, new Reflection());
 
             // Auto register types.
             factory.AutoRegisterTypes();
 
-            var reflection = new Reflection();
-            var singletonManager = new SingletonManager(reflection, logger, factory);
-            var singletonScanner = new SingletonScanner(reflection, logger, singletonManager);
-
-            // Connect the singleton manager to the factory so that it can be used to satisify dependencies.
-            factory.AddDependencyProvider(singletonManager);
-
-            // Auto register singletons whose types are marked with the Singleton attribute.
-            singletonScanner.ScanSingletonTypes();
-
-            // Instantiate singletons.
-            singletonManager.InstantiateSingletons(factory);
+            // Auto bootstrap singletons for classes marked as [Singleton].
+            factory.AutoInstantiateSingletons();
 
             // Create an instance.
             var myFactoryCreatedObject = factory.CreateInterface<IMyType>();
