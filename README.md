@@ -241,9 +241,9 @@ In some circumstances you may want to delay instantiation of singletons until th
 		...
 	}
 
-## Singletons can have other singletons dependency injected!
+## Singletons can depend on other singletons!
 
-Singletons can reference each other as dependencies.
+Singletons can have other singletons injected as dependencies: 
 
 	[Singleton(typeof(IMySingleton1))]
 	public class MySingleton1 : IMySingleton1
@@ -260,7 +260,7 @@ Singletons can reference each other as dependencies.
 		...
 	}
 
-Circular references between singletons are not allowed for obvious reasons, you will get a nasty exception thrown if you try to do that.
+Circular references between singletons are illegal for obvious reasons, you will get a nasty exception thrown if you try to do that.
 
 ## Singleton Startup/Shutdown    
 
@@ -320,12 +320,7 @@ Here is a basic example:
 		}
 	}
 
-For example at Real Serious Games we have a special attribute for creating Unity singletons... because we need special instantiate logic: 
-
- 
-
-
-https://github.com/Real-Serious-Games/RSG.Unity
+At [Real Serious Games](https://github.com/Real-Serious-Games) we have a special attribute for creating our Unity singletons... because they need special instantiation logic. So if you want to see a real example please see our *UnitySingletonAttribute* in the *[RSG.Unity](https://github.com/Real-Serious-Games/RSG.Unity)* project.
 
 ## Example Projects
 
