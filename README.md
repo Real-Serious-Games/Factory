@@ -79,8 +79,7 @@ And create instances by specifying the interface:
 
     IMyType myFactoryCreatedObject = factory.CreateInterface<IMyType>();
 
-This technique is useful in [test-driven development](http://en.wikipedia.org/wiki/Test-driven_development)  
-for [mocking](http://en.wikipedia.org/wiki/Mock_object) the interface of the object being created.
+This technique is useful in [test-driven development](http://en.wikipedia.org/wiki/Test-driven_development) for [mocking](http://en.wikipedia.org/wiki/Mock_object) the interface of the object being created.
 
 ## Constructor Arguments
 
