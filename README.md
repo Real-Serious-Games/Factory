@@ -34,8 +34,7 @@ After referencing the DLL and *using* the namespace, the factory is instantiated
 
 The first parameter specifies a name of the factory instance and is for debugging only. Naming factorys helps when using multiple factories.
 
-The second parameter is an instance of an object that implements `ILogger`. This implementing class is defined by the you, for an example of 
-the simplest possible implementation see the included example projects.
+The second parameter is an instance of an object that implements `ILogger`. This class must be implemented by you, for an example of the simplest possible implementation see the included example projects.
 
 # Factory Creation by Name
 
