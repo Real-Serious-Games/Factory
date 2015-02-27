@@ -1,5 +1,4 @@
 # Factory [![Build Status](https://travis-ci.org/Real-Serious-Games/Factory.svg)](https://travis-ci.org/Real-Serious-Games/Factory)
-=======
 
 Easy to use C# factory/IOC-container for object creation and dependency injection.
 
@@ -242,15 +241,91 @@ In some circumstances you may want to delay instantiation of singletons until th
 		...
 	}
 
+## Singletons can have other singletons dependency injected!
+
+Singletons can reference each other as dependencies.
+
+	[Singleton(typeof(IMySingleton1))]
+	public class MySingleton1 : IMySingleton1
+	{
+		...
+	}
+
+	[Singleton(typeof(IMySingleton2))]
+	public class MySingleton2 : IMySingleton2
+	{
+		[Dependency]
+		public IMySingleton1 MySingleton1 { get; set; }
+
+		...
+	}
+
+Circular references between singletons are not allowed for obvious reasons, you will get a nasty exception thrown if you try to do that.
 
 ## Singleton Startup/Shutdown    
 
-Coming soon!
+Singletons that implement *IStartable* can have their *Startup* and *Shutdown* methods called.
+
+ 	[Singleton(typeof(IMySingleton))]
+	public class MySingleton : IMySingleton, IStartable
+	{
+		public void Startup()
+		{
+			// ... initalization logic
+		}
+
+		public void Shutdown()
+		{
+			// ... shutdown logic
+		}
+	}
+
+Calling *AutoInstantiateSingletons* returns an *ISingletonManager* that can be used to interact with your singletons, for example when starting the application: 
+
+	var singletonManager = factory.AutoInstantiateSingletons();
+	singletonManager.Startup();
+
+And when shutting down your application:
+
+	singletonManager.Shutdown();
+
+You can interact generally with singleton objects via the *Singletons* property. For example, on shutdown you might want to query all singletons to ask them if its ok to shutdown given the current state of the application, let's say we are using an interface you have defined called *IQueryShutdown*:
+
+    var toQuery = singletonManager.Singletons
+		.Where(singleton => singleton is IQueryShutdown)
+        .Cast<IQueryShutdown>();
+
+	foreach (var singleton in toQuery)
+	{
+		if (!singleton.CanShutdown())
+		{
+			// The singleton wants to prevent shutdown for some reason!
+			...
+		}
+	}
 
 ## Custom Singleton Instantiation
 
-Coming soon!
+You can customize singleton instantiation by using your own attribute that derives from *SingletonAttribute* and implements *CreateInstance*.
 
+Here is a basic example:
+ 
+	public class MySpecialSingletonAttribute : SingletonAttribute
+	{
+		... constructors ...
+
+		public override object CreateInstance(IFactory factory, Type type)
+		{
+			... instantiate your special singleton and return it ...
+		}
+	}
+
+For example at Real Serious Games we have a special attribute for creating Unity singletons... because we need special instantiate logic: 
+
+ 
+
+
+https://github.com/Real-Serious-Games/RSG.Unity
 
 ## Example Projects
 
