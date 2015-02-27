@@ -110,12 +110,18 @@ let us know!
 
 Registering types manually is boring work. Here's how to do it automatically.
 
-Use the 'FactoryCreatable' attribute to mark your types.
+Use the *FactoryCreatable* [attribute](http://stackoverflow.com/questions/20346/net-what-are-attributes) to mark your types.
 
 By name:
 
-
 	[FactoryCreatable]
+	public class MyType
+    {
+    }
+
+Custom name:
+
+	[FactoryCreatable("MyCustomName")]
 	public class MyType
     {
     }
@@ -148,7 +154,7 @@ Dependencies can be injected (http://en.wikipedia.org/wiki/Dependency_injection)
 
 The `Dependency` attribute marks properties to be resolved. After the object has been factory-created the dependencies will be satisfied.
 
-Properties must have a 'setter'.
+Properties must have a public *getter* and *setter*.
 
 Property dependencies are very convenient (although it's a trade-off against the bad design of using public *setters*), but the properties can't be used in constructors. 
 This is because property dependencies, by necessity, are resolved after the object is constructed, therefore after the constructor has executed. 
@@ -156,9 +162,7 @@ To use use injected dependencies in a constructor, they must be injected as cons
 
 ## Dependency Injection via Constructor Arguments
 
-Constructor argument injection is cleaner than property injection (as it eliminates public *setters*), but it is less convenient.
-
-This is necessary when you need to use dependencies in a constructor.
+Constructor argument injection is cleaner than property injection (as it eliminates public *setters*), but it is less convenient, but you must do it this way to use dependencies in the constructor.
 
 An example:
 
@@ -189,7 +193,7 @@ warranted in some scenarios, but generally don't do it because it defeats the po
 
 ## Manual Setup for Dependency Injection
 
-Dependencies must be register with the factory before they can be injected.
+Dependencies must be registered with the factory before they can be injected.
 
 This can be done manually as follows:
 
@@ -215,7 +219,9 @@ See the next section if you need to dependency inject singletons, that is object
 
 ## Singleton Instantiation
 
-Classes marked with the *Singleton* attribute are automatically detected and instantiated for dependency injection. As these objects are [singletons](http://en.wikipedia.org/wiki/Singleton_pattern) there is only a single instance that is shared to all objects that requested the dependency.
+Classes marked with the *Singleton* attribute are automatically detected, instantiated and made ready for dependency injection. As these objects are [singletons](http://en.wikipedia.org/wiki/Singleton_pattern) there is only a single instance that is shared to all objects that requested the dependency.
+
+This is how you define a singleton:
 
 	[Singleton(typeof(IMySingleton))]
 	public class MySingleton : IMySingleton
@@ -223,15 +229,15 @@ Classes marked with the *Singleton* attribute are automatically detected and ins
 		...
 	}
 
-The parameter to the *Singleton* attribute specifies the type that is injected. The singleton is injected into other objects by requesting the singleton's interface as a constructor parameter or a property marked with the  *Dependency* attribute (as was documented early).
+The parameter to the *Singleton* attribute specifies the type that is injected. The singleton is injected into other objects by requesting the singleton's interface as a constructor parameter or a property dependency (as documented earlier).
 
-The factory is instructed to scan for and instantiate singletons as follows:
+The factory is instructed to find and instantiate singletons as follows:
 
 	factory.AutoInstantiateSingletons();
 
-After calling *AutoInstantiateSingletons* any class marked with *Singleton* will have been instantiated and is ready for dependency injection.
+At this point any class marked with *Singleton* will have been instantiated and is ready for dependency injection.
 
-In some circumstances you may want to delay instantiation of singletons until the point when the are actually requested the first time for dependency injection. We call these *lazy singletons* and you can mark them using the *LazySingleton* attribute:  
+In some circumstances you will want to delay instantiation of singletons until the time when the object is requested for dependency injection for the first time. We call these *lazy singletons* and you can mark them using the *LazySingleton* attribute:  
 
 	[LazySingleton(typeof(IMyLazySingleton))]
 	public class MyLazySingleton : IMyLazySingleton
@@ -241,7 +247,7 @@ In some circumstances you may want to delay instantiation of singletons until th
 
 ## Singletons can depend on other singletons!
 
-Singletons can have other singletons injected as dependencies: 
+Singletons can have other singletons injected as dependencies (in addition to regular dependencies): 
 
 	[Singleton(typeof(IMySingleton1))]
 	public class MySingleton1 : IMySingleton1
@@ -258,7 +264,11 @@ Singletons can have other singletons injected as dependencies:
 		...
 	}
 
-Circular references between singletons are illegal for obvious reasons, you will get a nasty exception thrown if you try to do that.
+The system automatically sorts *singleton definitions* by dependency prior to instantiation. This ensures that for any give singleton being instantiated, other singletons it depends on will already have been instantiated.
+
+Tweaking the startup order of objects in your application can be a painful experience, but automatic ordering of dependencies makes it so much easier! 
+
+Circular references between singletons are illegal for obvious reasons, a nasty exception will be thrown at you if you try to do that.
 
 ## Singleton Startup/Shutdown    
 
@@ -304,7 +314,7 @@ You can interact generally with singleton objects via the *Singletons* property.
 
 ## Custom Singleton Instantiation
 
-You can customize singleton instantiation by using your own attribute that derives from *SingletonAttribute* and implements *CreateInstance*.
+You can customize singleton instantiation by [creating your own attribute](https://msdn.microsoft.com/en-us/library/sw480ze8.aspx) that derives from *SingletonAttribute* and implements *CreateInstance*.
 
 Here is a basic example:
  
