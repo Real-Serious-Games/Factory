@@ -7,7 +7,7 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
 ## Recent Updates
 
 - 27 Feb 2015: v1.0.0.7
-  - Singleton setup is now simplified and easier to user. See this docs or included examples for details.
+  - Singleton setup is now simplified and easier to use. See this docs or included examples for details.
   - IStartable *Start* has been renamed to *Startup* to avoid conflicts with the MonoBehaviour *Start* function for Unity scripts. 
 
 ## Getting the DLL
@@ -26,9 +26,13 @@ You can get the code by cloning the github repository. You can do this in a UI l
 
 Alternately, to contribute please fork the project in github.
 
-# Factory Setup 
+# Factory Setup
 
-After referencing the DLL and *using* the namespace, the factory is instantiated as follows:
+Reference the DLL and import the namespace:
+
+	using RSG.Factory; 
+
+Instantiate the factory as follows:
 	
 	Factory factory = new Factory("MyApp", new MyLogger());
 
