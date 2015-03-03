@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSG.Factory
+namespace RSG
 {
     /// <summary>
     /// Interface that can provide dependencies.

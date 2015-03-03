@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSG.Factory
+namespace RSG
 {
     /// <summary>
     /// Attribute that defines a lazily creatable singleton.

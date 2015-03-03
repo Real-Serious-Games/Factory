@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSG.Factory
+namespace RSG
 {
     /// <summary>
     /// Helper class to scan dlls and find singleton types.

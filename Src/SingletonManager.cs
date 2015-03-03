@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace RSG.Factory
+namespace RSG
 {
     /// <summary>
     /// Defines a singleton.

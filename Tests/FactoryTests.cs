@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace RSG.Factory.Tests
+namespace RSG.Tests
 {
     public class FactoryTests
     {

@@ -6,6 +6,9 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
 
 ## Recent Updates
 
+- 3 March 2015: v1.1.0.0
+  - Breaking changes:
+    - Namespace has been changed from `RSG.Factory` to `RSG`, to avoid C#'s problems with classes having the same name as the namespace.
 - 27 Feb 2015: v1.0.0.7
   - Singleton setup is now simplified and easier to use. See this docs or included examples for details.
   - IStartable *Start* has been renamed to *Startup* to avoid conflicts with the MonoBehaviour *Start* function for Unity scripts. 
@@ -30,7 +33,7 @@ Alternately, to contribute please fork the project in github.
 
 Reference the DLL and import the namespace:
 
-	using RSG.Factory; 
+	using RSG; 
 
 Instantiate the factory as follows:
 	

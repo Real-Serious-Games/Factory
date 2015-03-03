@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace RSG.Factory
+namespace RSG
 {
     /// <summary>
     /// Inteface to an object factory.  Indirectly create objects.  Creation of objects is seperated from the code that uses those objects.
