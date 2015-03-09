@@ -13,7 +13,40 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
   - Singleton setup is now simplified and easier to use. See this docs or included examples for details.
   - IStartable *Start* has been renamed to *Startup* to avoid conflicts with the MonoBehaviour *Start* function for Unity scripts. 
 
-## Getting the DLL
+## Contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Getting Started](#getting-started)
+  - [Getting the DLL](#getting-the-dll)
+  - [Getting the Code](#getting-the-code)
+  - [Factory Setup](#factory-setup)
+- [Creating Objects](#creating-objects)
+  - [Factory Creation by Name](#factory-creation-by-name)
+  - [Factory Creation by Interface](#factory-creation-by-interface)
+  - [Constructor Arguments](#constructor-arguments)
+  - [Automatic Setup for Factory Creation](#automatic-setup-for-factory-creation)
+- [Dependency Injection](#dependency-injection)
+  - [Dependency Injection via Properties](#dependency-injection-via-properties)
+  - [Dependency Injection via Constructor Arguments](#dependency-injection-via-constructor-arguments)
+- [Dependency Injection Setup](#dependency-injection-setup)
+  - [Manual Setup for Dependency Injection](#manual-setup-for-dependency-injection)
+  - [Automatic Setup for Dependency Injection](#automatic-setup-for-dependency-injection)
+- [Singletons](#singletons)
+  - [Singleton Instantiation](#singleton-instantiation)
+  - [Singletons can depend on other singletons!](#singletons-can-depend-on-other-singletons)
+  - [Singleton Startup/Shutdown](#singleton-startupshutdown)
+  - [Custom Singleton Instantiation](#custom-singleton-instantiation)
+- [Examples](#examples)
+  - [Example C# Projects](#example-c#-projects)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Getting Started
+
+### Getting the DLL
 
 The DLL can be installed via nuget. Use the Package Manager UI or console in Visual Studio or use nuget from the command line.
 
@@ -21,7 +54,7 @@ See here for instructions on installing a package via nuget: http://docs.nuget.o
 
 The package to search for is *RSG.Factory*.
 
-# Getting the Code
+### Getting the Code
 
 You can get the code by cloning the github repository. You can do this in a UI like SourceTree or you can do it from the command line as follows:
 
@@ -29,7 +62,7 @@ You can get the code by cloning the github repository. You can do this in a UI l
 
 Alternately, to contribute please fork the project in github.
 
-# Factory Setup
+### Factory Setup
 
 Reference the DLL and import the namespace:
 
@@ -43,7 +76,9 @@ The first parameter specifies a name of the factory instance and is for debuggin
 
 The second parameter is an instance of an object that implements `ILogger`. This class must be implemented by you, for an example of the simplest possible implementation see the included example projects.
 
-# Factory Creation by Name
+## Creating Objects
+
+### Factory Creation by Name
 
 The simplest use of the factory is to create objects by name.
 
@@ -63,7 +98,7 @@ Now you can create instance of the type by specifying the type name:
 
 This technique is useful in [data-driven programming](http://stackoverflow.com/questions/1065584/what-is-data-driven-programming).
 
-## Factory Creation by Interface
+### Factory Creation by Interface
 
 Objects can also be created by specifying their interface.
 
@@ -88,7 +123,7 @@ And create instances by specifying the interface:
 
 This technique is useful in [test-driven development](http://en.wikipedia.org/wiki/Test-driven_development) for [mocking](http://en.wikipedia.org/wiki/Mock_object) the interface of the object being created.
 
-## Constructor Arguments
+### Constructor Arguments
 
 Any number of constructor arguments can be specified when creating objects, provided there actually is a constructor that takes the arguments.
 
@@ -113,7 +148,7 @@ This highlights the downside of using the factory, you don't get have compile-ti
 objects directly, however I believe that being able to use TDD outweights this issue. If you ever come up with a good solution to this problem **please** 
 let us know!
 
-## Automatic Setup for Factory Creation
+### Automatic Setup for Factory Creation
 
 Registering types manually is boring work. Here's how to do it automatically.
 
@@ -148,7 +183,9 @@ Be careful, this can be **expensive**! Ideally you will only do this only once a
 
 You can now create the automatically registered objects by name or interface as necessary.
 
-## Dependency Injection via Properties
+## Dependency Injection
+
+### Dependency Injection via Properties
 
 Dependencies can be injected (http://en.wikipedia.org/wiki/Dependency_injection) for properties as follows:
 
@@ -167,7 +204,7 @@ Property dependencies are very convenient (although it's a trade-off against the
 This is because property dependencies, by necessity, are resolved after the object is constructed, therefore after the constructor has executed. 
 To use use injected dependencies in a constructor, they must be injected as constructor arguments.
 
-## Dependency Injection via Constructor Arguments
+### Dependency Injection via Constructor Arguments
 
 Constructor argument injection is cleaner than property injection (as it eliminates public *setters*), but it is less convenient, but you must do it this way to use dependencies in the constructor.
 
@@ -198,7 +235,9 @@ Any number of injected arguments can come after any number of normal arguments.
 Remember that when you factory-create an object that takes injected constructor arguments that you shouldn't manually provide those arguments. You could do that if you wanted to, and maybe that's
 warranted in some scenarios, but generally don't do it because it defeats the point of having automatic injection.
 
-## Manual Setup for Dependency Injection
+## Dependency Injection Setup
+
+### Manual Setup for Dependency Injection
 
 Dependencies must be registered with the factory before they can be injected.
 
@@ -209,7 +248,7 @@ This can be done manually as follows:
 This registers an instance of `MyDependency` and associates it with the interface `IMyDependency`. Whenever `IMyDependency` is requested
 as a dependency it will resolve to the specified `MyDependency` object.
 
-## Automatic Setup for Dependency Injection
+### Automatic Setup for Dependency Injection
 
 Again... manual setup is boring and time consuming. Enjoy some automatic setup...
 
@@ -224,7 +263,9 @@ Any class that has been marked with `FactoryCreatable` (the interface version) w
 Whenever `IMyDependency` is requested as a dependency it will automatically resolve to an instance `MyDependency`. A new instance is created each time. 
 See the next section if you need to dependency inject singletons, that is objects that are only created once and shared each time the dependency is needed.
 
-## Singleton Instantiation
+## Singletons
+
+### Singleton Instantiation
 
 Classes marked with the *Singleton* attribute are automatically detected, instantiated and made ready for dependency injection. As these objects are [singletons](http://en.wikipedia.org/wiki/Singleton_pattern) there is only a single instance that is shared to all objects that requested the dependency.
 
@@ -252,7 +293,7 @@ In some circumstances you will want to delay instantiation of singletons until t
 		...
 	}
 
-## Singletons can depend on other singletons!
+### Singletons can depend on other singletons!
 
 Singletons can have other singletons injected as dependencies (in addition to regular dependencies): 
 
@@ -277,7 +318,7 @@ Tweaking the startup order of objects in your application can be a painful exper
 
 Circular references between singletons are illegal for obvious reasons, a nasty exception will be thrown at you if you try to do that.
 
-## Singleton Startup/Shutdown    
+### Singleton Startup/Shutdown    
 
 Singletons that implement *IStartable* can have their *Startup* and *Shutdown* methods called.
 
@@ -319,7 +360,7 @@ You can interact generally with singleton objects via the *Singletons* property.
 		}
 	}
 
-## Custom Singleton Instantiation
+### Custom Singleton Instantiation
 
 You can customize singleton instantiation by [creating your own attribute](https://msdn.microsoft.com/en-us/library/sw480ze8.aspx) that derives from *SingletonAttribute* and implements *CreateInstance*.
 
@@ -337,7 +378,9 @@ Here is a basic example:
 
 At [Real Serious Games](https://github.com/Real-Serious-Games) we have a special attribute for creating our Unity singletons... because they need special instantiation logic. So if you want to see a real example please see our *UnitySingletonAttribute* in the *[RSG.Unity](https://github.com/Real-Serious-Games/RSG.Unity)* project.
 
-## Example Projects
+## Examples
+
+### Example C# Projects
 
 This project comes with numerous example projects. I recommend cloning to browse locally or just browsing via the github web interface.
 
