@@ -39,8 +39,10 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
   - [Singletons can depend on other singletons!](#singletons-can-depend-on-other-singletons)
   - [Singleton Startup/Shutdown](#singleton-startupshutdown)
   - [Custom Singleton Instantiation](#custom-singleton-instantiation)
+- [Unity3D Setup and Usage](#unity3d-setup-and-usage)
 - [Examples](#examples)
   - [Example C# Projects](#example-c#-projects)
+  - [Example Unity Project](#example-unity-project)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -378,11 +380,21 @@ Here is a basic example:
 
 At [Real Serious Games](https://github.com/Real-Serious-Games) we have a special attribute for creating our Unity singletons... because they need special instantiation logic. So if you want to see a real example please see our *UnitySingletonAttribute* in the *[RSG.Unity](https://github.com/Real-Serious-Games/RSG.Unity)* project.
 
+## Unity3D Setup and Usage
+
+Coming soon!
+
 ## Examples
 
 ### Example C# Projects
 
 This project comes with numerous example projects. I recommend cloning to browse locally or just browsing via the github web interface.
+
+### Example Unity Project
+
+At RSG we use the Factory with Unity3D, so we have prepared an example Unity project that demonstrates how to use the factory.
+
+As Unity projects are largish... we have put this example in its own repository, available here: [https://github.com/Real-Serious-Games/Unity3D-Factory-Example](https://github.com/Real-Serious-Games/Unity3D-Factory-Example)
 
 
 
