@@ -6,6 +6,7 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
 
 ## Recent Updates
 
+- 10 March 2015: Added [Unity3D instructions](#Unity3D Setup and Usage) and [Unity example project](#Example Unity Project).
 - 3 March 2015: v1.1.0.0
   - Breaking changes:
     - Namespace has been changed from `RSG.Factory` to `RSG`, to avoid C#'s problems with classes having the same name as the namespace.
@@ -40,6 +41,11 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
   - [Singleton Startup/Shutdown](#singleton-startupshutdown)
   - [Custom Singleton Instantiation](#custom-singleton-instantiation)
 - [Unity3D Setup and Usage](#unity3d-setup-and-usage)
+  - [Basic Setup](#basic-setup)
+  - [Debugging the Factory Code](#debugging-the-factory-code)
+  - [MonoBehavior's as Singletons](#monobehaviors-as-singletons)
+  - [Bootstrapping the Factory](#bootstrapping-the-factory)
+  - [Dependency Injecting an Existing MonoBehavior](#dependency-injecting-an-existing-monobehavior)
 - [Examples](#examples)
   - [Example C# Projects](#example-c#-projects)
   - [Example Unity Project](#example-unity-project)
@@ -50,9 +56,7 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
 
 ### Getting the DLL
 
-The DLL can be installed via nuget. Use the Package Manager UI or console in Visual Studio or use nuget from the command line.
-
-See here for instructions on installing a package via nuget: http://docs.nuget.org/docs/start-here/using-the-package-manager-console
+The DLL can be installed via nuget. Use the [Package Manager UI or console in Visual Studio](http://docs.nuget.org/docs/start-here/using-the-package-manager-console) or [use nuget from the command line](http://blog.davidebbo.com/2011/01/installing-nuget-packages-directly-from.html).
 
 The package to search for is *RSG.Factory*.
 
@@ -382,7 +386,65 @@ At [Real Serious Games](https://github.com/Real-Serious-Games) we have a special
 
 ## Unity3D Setup and Usage
 
-Coming soon!
+### Basic Setup
+
+Copy *RSG.Factory.dll* and *RSG.Toolkit.dll* into your [Unity](http://en.wikipedia.org/wiki/Unity_(game_engine)) project under the *Assets* directory. You can get the [dll from nuget](#Getting the DLL) otherwise you must clone and build the code (see [Getting the Code](#Getting the Code)).
+
+Include the *RSG* namespace in your C# code and you are ready to start using all the features of the factory as explained above.
+
+### Debugging the Factory Code
+
+To debug the Factory code (maybe you'd like to solve a problem or contribute?) you must [build from code](#Getting the Code).
+
+Once built, copy *RSG.Factory.dll*, its associated pdb (the debug information) and *RSG.Toolkit.dll* into your Unity project. 
+
+Now you will be able to debug the factory code using [UnityVS](http://unityvs.com/).
+
+If you want to use *[MonoDevelop](http://docs.unity3d.com/Manual/MonoDevelop.html)* to debug (I don't recommend it) you will need to generate an *mdb* file for the factory dll. This is the MonoDevelop equivalent of a pdb file. Unity comes with a tool *pdb2mdb.exe* to generate mdb files. You should really just use UnityVS, it's free now and is much less hassle.
+
+### MonoBehavior's as Singletons
+
+Use a [custom singleton attribute](#Custom Singleton Instantiation) to provide DIY instantiation logic for your Unity singletons. *UnitySingletonAttribute* is the attribute we use at [Real Serious Games](https://github.com/real-serious-games) you can find a version of it in our [Example Unity Project](#Example Unity Project) or in our [Unity application toolkit](https://github.com/Real-Serious-Games/RSG.UnityApp).
+
+### Bootstrapping the Factory
+
+To tie in with the Unity scene you are going to need a globally accessible instance of the factory. We like to have a singleton `App` class that survives for the duration of the application regardless of which Unity scene is loaded. Each scene has an *Application* [GameObject](http://docs.unity3d.com/Manual/class-GameObject.html) which has an `AppInit` MonoBehaviour attached. The [`Awake`](http://docs.unity3d.com/Manual/class-GameObject.html) function initialises the `App` singleton which in turn initalises the global factory. You can see an example of this in the associated [Unity example project](#Example Unity Project) or for a more complex/substantial example see our [Unity application toolkit](https://github.com/Real-Serious-Games/RSG.UnityApp).
+
+### Dependency Injecting an Existing MonoBehavior
+
+Unity programmers reach a whole new level when they realize that not every object needs to be an instance of a [MonoBehaviour](http://docs.unity3d.com/ScriptReference/MonoBehaviour.html). But even so you are always going to need some MonoBehaviours to plug logic into your Unity scene.
+
+From the `Start` function of your MonoBehaviour call *ResolveDependencies* to fullfil dependencies for your already instantiated MonoBehavior: 
+
+	public class MyMonoBehaviour : MyMonoBehaviour
+	{
+		[Dependency]
+		public ISomeDependency SomeDependency { get; set; }
+
+		void Start()
+		{
+			App.Instance.Factory.ResolveDependencies(this);
+		}
+	}
+
+Note if you use the Application/AppInit soution from the previous section to book your App singleton then you need to do dependency resolution in the `Start` function rather than `Awake`. However this isn't an issue if you directly boot the *App* singleton first. for example: 
+
+	public class MyMonoBehaviour : MyMonoBehaviour
+	{
+		[Dependency]
+		public ISomeDependency SomeDependency { get; set; }
+
+		void Awake()
+		{
+			// Ensure app has been started before using it.
+			// Note that our app 
+			App.Startup(); 
+
+			App.Instance.Factory.ResolveDependencies(this);
+		}
+	}
+
+For this to work the call to `App.Startup()` needs to be callable multiple times, only having an effect (booting the App/factory) the first time it is called. 
 
 ## Examples
 
@@ -392,7 +454,7 @@ This project comes with numerous example projects. I recommend cloning to browse
 
 ### Example Unity Project
 
-At RSG we use the Factory with Unity3D, so we have prepared an example Unity project that demonstrates how to use the factory.
+At [Real Serious Games](https://github.com/real-serious-games) we use the Factory with Unity3D, so we have prepared an example Unity project that demonstrates how to use the factory.
 
 As Unity projects are largish... we have put this example in its own repository, available here: [https://github.com/Real-Serious-Games/Unity3D-Factory-Example](https://github.com/Real-Serious-Games/Unity3D-Factory-Example)
 
