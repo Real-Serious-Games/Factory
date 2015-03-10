@@ -6,7 +6,7 @@ Used by Real Serious Games in serious games built with [Unity3D](http://unity3d.
 
 ## Recent Updates
 
-- 10 March 2015: Added [Unity3D instructions](#Unity3D Setup and Usage) and [Unity example project](#Example Unity Project).
+- 10 March 2015: Added [Unity3D instructions](#Unity3D-Setup-and-Usage) and [Unity example project](#Example-Unity-Project).
 - 3 March 2015: v1.1.0.0
   - Breaking changes:
     - Namespace has been changed from `RSG.Factory` to `RSG`, to avoid C#'s problems with classes having the same name as the namespace.
@@ -388,13 +388,13 @@ At [Real Serious Games](https://github.com/Real-Serious-Games) we have a special
 
 ### Basic Setup
 
-Copy *RSG.Factory.dll* and *RSG.Toolkit.dll* into your [Unity](http://en.wikipedia.org/wiki/Unity_(game_engine)) project under the *Assets* directory. You can get the [dll from nuget](#Getting the DLL) otherwise you must clone and build the code (see [Getting the Code](#Getting the Code)).
+Copy *RSG.Factory.dll* and *RSG.Toolkit.dll* into your [Unity](http://en.wikipedia.org/wiki/Unity_(game_engine)) project under the *Assets* directory. You can get the [dll from nuget](#Getting-the-DLL) otherwise you must clone and build the code (see [Getting the Code](#Getting-the-Code)).
 
 Include the *RSG* namespace in your C# code and you are ready to start using all the features of the factory as explained above.
 
 ### Debugging the Factory Code
 
-To debug the Factory code (maybe you'd like to solve a problem or contribute?) you must [build from code](#Getting the Code).
+To debug the Factory code (maybe you'd like to solve a problem or contribute?) you must [build from code](#Getting-the-Code).
 
 Once built, copy *RSG.Factory.dll*, its associated pdb (the debug information) and *RSG.Toolkit.dll* into your Unity project. 
 
@@ -404,11 +404,11 @@ If you want to use *[MonoDevelop](http://docs.unity3d.com/Manual/MonoDevelop.htm
 
 ### MonoBehavior's as Singletons
 
-Use a [custom singleton attribute](#Custom Singleton Instantiation) to provide DIY instantiation logic for your Unity singletons. *UnitySingletonAttribute* is the attribute we use at [Real Serious Games](https://github.com/real-serious-games) you can find a version of it in our [Example Unity Project](#Example Unity Project) or in our [Unity application toolkit](https://github.com/Real-Serious-Games/RSG.UnityApp).
+Use a [custom singleton attribute](#Custom-Singleton-Instantiation) to provide DIY instantiation logic for your Unity singletons. *UnitySingletonAttribute* is the attribute we use at [Real Serious Games](https://github.com/real-serious-games) you can find a version of it in our [Example Unity Project](#Example-Unity-Project) or in our [Unity application toolkit](https://github.com/Real-Serious-Games/RSG.UnityApp).
 
 ### Bootstrapping the Factory
 
-To tie in with the Unity scene you are going to need a globally accessible instance of the factory. We like to have a singleton `App` class that survives for the duration of the application regardless of which Unity scene is loaded. Each scene has an *Application* [GameObject](http://docs.unity3d.com/Manual/class-GameObject.html) which has an `AppInit` MonoBehaviour attached. The [`Awake`](http://docs.unity3d.com/Manual/class-GameObject.html) function initialises the `App` singleton which in turn initalises the global factory. You can see an example of this in the associated [Unity example project](#Example Unity Project) or for a more complex/substantial example see our [Unity application toolkit](https://github.com/Real-Serious-Games/RSG.UnityApp).
+To tie in with the Unity scene you are going to need a globally accessible instance of the factory. We like to have a singleton `App` class that survives for the duration of the application regardless of which Unity scene is loaded. Each scene has an *Application* [GameObject](http://docs.unity3d.com/Manual/class-GameObject.html) which has an `AppInit` MonoBehaviour attached. The [`Awake`](http://docs.unity3d.com/Manual/class-GameObject.html) function initialises the `App` singleton which in turn initalises the global factory. You can see an example of this in the associated [Unity example project](#Example-Unity-Project) or for a more complex/substantial example see our [Unity application toolkit](https://github.com/Real-Serious-Games/RSG.UnityApp).
 
 ### Dependency Injecting an Existing MonoBehavior
 
