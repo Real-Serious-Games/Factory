@@ -345,7 +345,7 @@ namespace RSG
         {
             if (typesConsidered.Contains(typeName))
             {
-                throw new ApplicationException("Already considered " + typeName + ", could be in a circular dependency.");
+                throw new ApplicationException("Already considered " + typeName + ", could be in a circular dependency. Types considered: " + typesConsidered.Join(", "));
             }
 
             yield return typeName;            
