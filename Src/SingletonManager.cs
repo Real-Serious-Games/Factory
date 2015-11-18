@@ -366,19 +366,26 @@ namespace RSG
         /// </summary>
         private static IEnumerable<string> DetermineDeps(Type type, IFactory factory, IEnumerable<string> typesConsidered)
         {
-            return type    // Start with types of properties.
-                .GetProperties()
-                .Where(p => ReflectionUtils.PropertyHasAttribute<DependencyAttribute>(p))
-                .Select(p => Factory.GetTypeName(p.PropertyType))
-                // Merge in constructor parameter types.
-                .Concat(
-                    type
-                        .GetConstructors()
-                        .SelectMany(c => c.GetParameters())
-                        .Select(p => Factory.GetTypeName(p.ParameterType))
-                )
-                .SelectMany(n => FindDeps(n, factory, typesConsidered))
-                .Distinct();
+            try
+            {
+                return type    // Start with types of properties.
+                    .GetProperties()
+                    .Where(p => ReflectionUtils.PropertyHasAttribute<DependencyAttribute>(p))
+                    .Select(p => Factory.GetTypeName(p.PropertyType))
+                    // Merge in constructor parameter types.
+                    .Concat(
+                        type
+                            .GetConstructors()
+                            .SelectMany(c => c.GetParameters())
+                            .Select(p => Factory.GetTypeName(p.ParameterType))
+                    )
+                    .SelectMany(n => FindDeps(n, factory, typesConsidered))
+                    .Distinct();
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Exception was thrown while determining dependencies for " + type.Name, ex);
+            }
         }
     }
 }
