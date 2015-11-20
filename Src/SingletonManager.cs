@@ -380,7 +380,8 @@ namespace RSG
                             .Select(p => Factory.GetTypeName(p.ParameterType))
                     )
                     .SelectMany(n => FindDeps(n, factory, typesConsidered))
-                    .Distinct();
+                    .Distinct()
+                    .ToArray(); // Force evaluation so that any exceptions are thrown.
             }
             catch (Exception ex)
             {
