@@ -56,6 +56,7 @@
     <Compile Include="SingletonScanner.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Factory.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
