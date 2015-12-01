@@ -370,9 +370,10 @@ namespace RSG
             Argument.StringNotNullOrEmpty(() => typeName);
             Argument.NotNull(() => type);
 
-            if (typeMap.ContainsKey(typeName))
+            Type existingType;
+            if (typeMap.TryGetValue(typeName, out existingType))
             {
-                throw new ApplicationException("A type has already been registered for name '" + typeName + "'.");
+                throw new ApplicationException("A type has already been registered for name '" + typeName + "'. Attempting to register type " + type.FullName + ", but type " + existingType.FullName + " is already registered with that name.");
             }
 
             typeMap.Add(typeName, type);
