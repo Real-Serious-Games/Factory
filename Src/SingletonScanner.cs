@@ -45,6 +45,10 @@ namespace RSG
             var singletonTypes = reflection.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) });
 
             var singletonDefs = singletonTypes
+                .Where(type =>
+                {
+                    return reflection.GetAttributes<SingletonAttribute>(type).All(attr => attr.Enabled);
+                })
                 .Select(type =>
                 {
                     var attrs = reflection.GetAttributes<SingletonAttribute>(type).ToArray();

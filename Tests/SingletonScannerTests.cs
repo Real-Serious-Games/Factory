@@ -108,6 +108,31 @@ namespace RSG.Tests
                 def.dependencyNames.Contains(dependency2)
             )), Times.Once());
         }
+
+        [Fact]
+        public void disabled_singletons_are_ignored()
+        {
+            var singletonType = typeof(object); // Anything will do here.
+
+            var mockReflection = new Mock<IReflection>();
+            mockReflection
+                .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
+                .Returns(new Type[] { singletonType });
+            var testSingletonAttribute = new SingletonAttribute();
+            testSingletonAttribute.Enabled = false;
+            mockReflection
+                .Setup(m => m.GetAttributes<SingletonAttribute>(singletonType))
+                .Returns(new SingletonAttribute[] { testSingletonAttribute }); ;
+
+            var mockLogger = new Mock<ILogger>();
+            var mockSingletonManager = new Mock<ISingletonManager>();
+
+            var testObject = new SingletonScanner(mockReflection.Object, mockLogger.Object, mockSingletonManager.Object);
+
+            testObject.ScanSingletonTypes();
+
+            mockSingletonManager.Verify(m => m.RegisterSingleton(It.IsAny<SingletonDef>()), Times.Never());
+        }
     }
 
 }

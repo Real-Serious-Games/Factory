@@ -16,18 +16,26 @@ namespace RSG
         /// </summary>
         public string DependencyName { get; private set; }
 
+        /// <summary>
+        /// Whether or not the class should be enabled for discovery in the current build
+        /// </summary>
+        public bool Enabled { get; set; }
+
         public SingletonAttribute()
         {
+            Enabled = true;
         }
 
         public SingletonAttribute(Type interfaceType)
         {
             this.DependencyName = interfaceType.Name;
+            this.Enabled = true;
         }
 
         public SingletonAttribute(string dependencyName)
         {
             this.DependencyName = dependencyName;
+            this.Enabled = true;
         }
 
         /// <summary>
