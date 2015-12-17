@@ -19,23 +19,46 @@ namespace RSG
         /// <summary>
         /// Whether or not the class should be enabled for discovery in the current build
         /// </summary>
-        public bool Enabled { get; set; }
+        public virtual bool Discoverable()
+        {
+            if (discoverablePredicate != null)
+            {
+                return discoverablePredicate();
+            }
+            return true;
+        }
+
+        private Func<bool> discoverablePredicate;
 
         public SingletonAttribute()
         {
-            Enabled = true;
         }
 
         public SingletonAttribute(Type interfaceType)
         {
             this.DependencyName = interfaceType.Name;
-            this.Enabled = true;
         }
 
         public SingletonAttribute(string dependencyName)
         {
             this.DependencyName = dependencyName;
-            this.Enabled = true;
+        }
+
+        public SingletonAttribute(Func<bool> discoverablePredicate)
+        {
+            this.discoverablePredicate = discoverablePredicate;
+        }
+
+        public SingletonAttribute(Type interfaceType, Func<bool> discoverablePredicate)
+        {
+            this.DependencyName = interfaceType.Name;
+            this.discoverablePredicate = discoverablePredicate;
+        }
+
+        public SingletonAttribute(string dependencyName, Func<bool> discoverablePredicate)
+        {
+            this.DependencyName = dependencyName;
+            this.discoverablePredicate = discoverablePredicate;
         }
 
         /// <summary>

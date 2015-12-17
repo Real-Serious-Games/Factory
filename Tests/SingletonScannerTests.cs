@@ -118,8 +118,9 @@ namespace RSG.Tests
             mockReflection
                 .Setup(m => m.FindTypesMarkedByAttributes(new Type[] { typeof(SingletonAttribute) }))
                 .Returns(new Type[] { singletonType });
-            var testSingletonAttribute = new SingletonAttribute();
-            testSingletonAttribute.Enabled = false;
+
+            var testSingletonAttribute = new SingletonAttribute(() => false);
+            
             mockReflection
                 .Setup(m => m.GetAttributes<SingletonAttribute>(singletonType))
                 .Returns(new SingletonAttribute[] { testSingletonAttribute }); ;
