@@ -47,7 +47,7 @@ namespace RSG
             var singletonDefs = singletonTypes
                 .Where(type =>
                 {
-                    return !reflection.GetAttributes<SingletonAttribute>(type).Any(attr => !attr.Discoverable());
+                    return reflection.GetAttributes<SingletonAttribute>(type).All(attr => attr.Discoverable());
                 })
                 .Select(type =>
                 {
