@@ -202,7 +202,7 @@ namespace RSG
         private object InstantiateSingleton(SingletonDef singletonDef, IFactory factory)
         {
             var type = singletonDef.singletonType;
-            logger.LogInfo("Instantiating singleton: " + type.Name);
+            logger.LogInfo("Instantiating singleton " + type.Name + " that satisfies dependencies " + singletonDef.dependencyNames.Join(", "));
 
             try
             {
