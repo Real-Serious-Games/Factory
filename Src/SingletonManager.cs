@@ -268,7 +268,16 @@ namespace RSG
             logger.LogInfo("Ordering singletons:");
 
             singletonDefs
-                .GroupBy(singletonDef => singletonDef.dependencyNames)
+                .SelectMany(singletonDef =>
+                {
+                    return singletonDef.dependencyNames
+                        .Select(dependencyName => new
+                        {
+                            Type = singletonDef,
+                            DependencyName = dependencyName
+                        });
+                })
+                .GroupBy(singletonDef => singletonDef.DependencyName)
                 .Each(singletonGroup =>
                 {
                     if (singletonGroup.Count() > 1) 
@@ -277,7 +286,7 @@ namespace RSG
 
                         singletonGroup.Each(singletonDef =>
                         {
-                            logger.LogInfo(singletonDef.singletonType.Name + " defined as dependencies " + singletonDef.dependencyNames.Join(", "));
+                            logger.LogInfo(singletonDef.Type.singletonType.Name + " defined as dependency " + singletonDef.DependencyName);
                         });
                     }
                 });
