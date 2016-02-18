@@ -267,6 +267,21 @@ namespace RSG
 
             logger.LogInfo("Ordering singletons:");
 
+            singletonDefs
+                .GroupBy(singletonDef => singletonDef.dependencyNames)
+                .Each(singletonGroup =>
+                {
+                    if (singletonGroup.Count() > 1) 
+                    {
+                        logger.LogError("Multiple singletons defined as the dependency " + singletonGroup.Key);
+
+                        singletonGroup.Each(singletonDef =>
+                        {
+                            logger.LogInfo(singletonDef.singletonType.Name + " defined as dependencies " + singletonDef.dependencyNames.Join(", "));
+                        });
+                    }
+                });
+
             var dependencyMap = singletonDefs
                 .SelectMany(singletonDef =>
                 {
