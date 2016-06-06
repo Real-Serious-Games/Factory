@@ -286,7 +286,7 @@ namespace RSG
 
                         singletonGroup.Each(singletonDef =>
                         {
-                            logger.LogInfo(singletonDef.Type.singletonType.Name + " defined as dependency " + singletonDef.DependencyName);
+                            logger.LogInfo(singletonDef.Type.singletonType.Name + " defined as dependency " + singletonDef.DependencyName + "( from DLL " + singletonDef.Type.singletonType.Assembly.FullName + ")");
                         });
                     }
                 });
