@@ -243,7 +243,8 @@ namespace RSG
         /// </summary>
         public void Shutdown()
         {
-            Singletons.ForType((IStartable s) => {
+            // Shutdown must happen in reverse order to startup so that dependencies are still available during shutdown.
+            Singletons.Reverse().ForType((IStartable s) => {
                 logger.LogInfo("Stopping singleton: " + s.GetType().Name);
 
                 try
