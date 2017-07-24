@@ -28,7 +28,7 @@ namespace RSG
             return true;
         }
 
-        private Func<bool> discoverablePredicate;
+        private readonly Func<bool> discoverablePredicate;
 
         public SingletonAttribute()
         {

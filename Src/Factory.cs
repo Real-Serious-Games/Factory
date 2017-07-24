@@ -1011,7 +1011,7 @@ namespace RSG
         /// </summary>
         public ISingletonManager AutoInstantiateSingletons()
         {
-            var singletonManager = new SingletonManager(reflection, logger, this);
+            var singletonManager = new SingletonManager(logger, this);
             var singletonScanner = new SingletonScanner(reflection, logger, singletonManager);
 
             // Connect the singleton manager to the factory so that it can be used to satisify dependencies.

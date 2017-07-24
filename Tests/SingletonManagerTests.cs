@@ -20,7 +20,7 @@ namespace RSG.Tests
             mockFactory = new Mock<IFactory>();
             mockReflection = new Mock<IReflection>();
             mockLogger = new Mock<ILogger>();
-            testObject = new SingletonManager(mockReflection.Object, mockLogger.Object, mockFactory.Object);
+            testObject = new SingletonManager(mockLogger.Object, mockFactory.Object);
         }
 
         static void InitTestSingleton(Type singletonType, object singleton, params string[] dependencyNames)

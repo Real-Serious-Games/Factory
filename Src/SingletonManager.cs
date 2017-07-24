@@ -81,38 +81,31 @@ namespace RSG
         public object[] Singletons { get; private set; }
 
         /// <summary>
-        /// For mockable C# reflection services.
-        /// </summary>
-        private IReflection reflection;
-
-        /// <summary>
         /// Factory used to instantiate singletons.
         /// </summary>
-        private IFactory factory;
+        private readonly IFactory factory;
 
         /// <summary>
         /// Map that allows singletons to be dependency injected.
         /// Maps 'dependency name' to singleton object.
         /// </summary>
-        private Dictionary<string, object> dependencyCache = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> dependencyCache = new Dictionary<string, object>();
 
         /// <summary>
         /// For logging.
         /// </summary>
-        private ILogger logger;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Definitions for all known (non-lazy) singletons.
         /// </summary>
-        private List<SingletonDef> singletonDefs = new List<SingletonDef>();
+        private readonly List<SingletonDef> singletonDefs = new List<SingletonDef>();
 
-        public SingletonManager(IReflection reflection, ILogger logger, IFactory factory)
+        public SingletonManager(ILogger logger, IFactory factory)
         {
-            Argument.NotNull(() => reflection);
             Argument.NotNull(() => logger);
             Argument.NotNull(() => factory);
 
-            this.reflection = reflection;
             this.logger = logger;
             this.factory = factory;
             this.Singletons = new object[0];
@@ -144,14 +137,10 @@ namespace RSG
             {
                 // See if we can lazy init the singleton.
                 var lazySingletonDef = singletonDefs
-                    .Where(singletonDef => singletonDef.lazy)
-                    .Where(singletonDef => singletonDef.dependencyNames.Contains(dependencyName))
-                    .FirstOrDefault();
-                if (lazySingletonDef != null)
-                {
-                    return InstantiateSingleton(lazySingletonDef, factory);
-                }
-                return null;
+                    .FirstOrDefault(singletonDef => singletonDef.lazy 
+                        && singletonDef.dependencyNames.Contains(dependencyName));
+
+                return lazySingletonDef != null ? InstantiateSingleton(lazySingletonDef, factory) : null;
             }
 
             return singleton;
