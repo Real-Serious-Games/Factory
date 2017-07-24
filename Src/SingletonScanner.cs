@@ -66,8 +66,8 @@ namespace RSG
                 })
                 .ToArray();
 
-            logger.LogInfo("Found singletons:");
-            singletonDefs.Each(def => logger.LogInfo("\t" + def.ToString()));
+            logger.LogVerbose("Found singletons:");
+            singletonDefs.Each(def => logger.LogVerbose("\t" + def.ToString()));
 
             singletonDefs
                 .Each(singletonDef => singletonManager.RegisterSingleton(singletonDef));            

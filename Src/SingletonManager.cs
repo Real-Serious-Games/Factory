@@ -191,7 +191,7 @@ namespace RSG
         private object InstantiateSingleton(SingletonDef singletonDef, IFactory factory)
         {
             var type = singletonDef.singletonType;
-            logger.LogInfo("Instantiating singleton " + type.Name + " that satisfies dependencies " + singletonDef.dependencyNames.Join(", "));
+            logger.LogVerbose("Instantiating singleton " + type.Name + " that satisfies dependencies " + singletonDef.dependencyNames.Join(", "));
 
             try
             {
@@ -214,7 +214,7 @@ namespace RSG
         public void Startup()
         {
             Singletons.ForType((IStartable s) => {
-                logger.LogInfo("Starting singleton: " + s.GetType().Name);
+                logger.LogVerbose("Starting singleton: " + s.GetType().Name);
 
                 try
                 {
@@ -234,7 +234,7 @@ namespace RSG
         {
             // Shutdown must happen in reverse order to startup so that dependencies are still available during shutdown.
             Singletons.Reverse().ForType((IStartable s) => {
-                logger.LogInfo("Stopping singleton: " + s.GetType().Name);
+                logger.LogVerbose("Stopping singleton: " + s.GetType().Name);
 
                 try
                 {
@@ -255,7 +255,7 @@ namespace RSG
             Argument.NotNull(() => singletonDefs);
             Argument.NotNull(() => factory);
 
-            logger.LogInfo("Ordering singletons:");
+            logger.LogVerbose("Ordering singletons:");
 
             singletonDefs
                 .SelectMany(singletonDef =>
@@ -276,7 +276,7 @@ namespace RSG
 
                         singletonGroup.Each(singletonDef =>
                         {
-                            logger.LogInfo(singletonDef.Type.singletonType.Name + " defined as dependency " + singletonDef.DependencyName + "( from DLL " + singletonDef.Type.singletonType.Assembly.FullName + ")");
+                            logger.LogVerbose(singletonDef.Type.singletonType.Name + " defined as dependency " + singletonDef.DependencyName + "( from DLL " + singletonDef.Type.singletonType.Assembly.FullName + ")");
                         });
                     }
                 });
@@ -314,14 +314,14 @@ namespace RSG
                 {
                     output.Add(singletonDef);
 
-                    logger.LogInfo("\t" + singletonDef.singletonType.Name);
-                    logger.LogInfo("\t\tImplements: " + singletonDef.dependencyNames.Join(", "));
-                    logger.LogInfo("\t\tDepends on:");
-                    singletonDependsOn.Each(dependencyName => logger.LogInfo("\t\t\t" + dependencyName));
-                    logger.LogInfo("\t\tDepends on (singletons):");
+                    logger.LogVerbose("\t" + singletonDef.singletonType.Name);
+                    logger.LogVerbose("\t\tImplements: " + singletonDef.dependencyNames.Join(", "));
+                    logger.LogVerbose("\t\tDepends on:");
+                    singletonDependsOn.Each(dependencyName => logger.LogVerbose("\t\t\t" + dependencyName));
+                    logger.LogVerbose("\t\tDepends on (singletons):");
                     singletonDependsOn
                         .Where(dependencyName => dependencyMap.ContainsKey(dependencyName))
-                        .Each(dependencyName => logger.LogInfo("\t\t\t" + dependencyName + (dependenciesSatisfied.Contains(dependencyName) ? " (satisfied)" : " (unsatisified)")));
+                        .Each(dependencyName => logger.LogVerbose("\t\t\t" + dependencyName + (dependenciesSatisfied.Contains(dependencyName) ? " (satisfied)" : " (unsatisified)")));
 
                     singletonDef.dependencyNames.Each(dependencyName => dependenciesSatisfied.Add(dependencyName));
                 }
