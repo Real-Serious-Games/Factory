@@ -12,13 +12,11 @@ namespace RSG.Tests
     {
         static Mock<ILogger> mockLogger;
         static Mock<IFactory> mockFactory;
-        static Mock<IReflection> mockReflection;
         static SingletonManager testObject;
 
         static void Init()
         {
             mockFactory = new Mock<IFactory>();
-            mockReflection = new Mock<IReflection>();
             mockLogger = new Mock<ILogger>();
             testObject = new SingletonManager(mockLogger.Object, mockFactory.Object);
         }
