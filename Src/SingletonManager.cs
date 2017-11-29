@@ -101,6 +101,17 @@ namespace RSG
         /// </summary>
         private readonly List<SingletonDef> singletonDefs = new List<SingletonDef>();
 
+        [Obsolete("There is no need to pass reflection into constructor any more")]
+        public SingletonManager(IReflection reflection, ILogger logger, IFactory factory)
+        {
+            Argument.NotNull(() => logger);
+            Argument.NotNull(() => factory);
+
+            this.logger = logger;
+            this.factory = factory;
+            this.Singletons = new object[0];
+        }
+
         public SingletonManager(ILogger logger, IFactory factory)
         {
             Argument.NotNull(() => logger);
